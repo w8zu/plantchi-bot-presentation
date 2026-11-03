@@ -1,0 +1,1248 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>PLANTCHI BOT 발표 수정본</title>
+<style>
+@font-face {
+  font-family: "Galmuri11";
+  src: url("assets/fonts/Galmuri11.woff2") format("woff2");
+  font-display: block;
+}
+:root {
+  --bg: #fdf3e7;
+  --card: #fffaf0;
+  --line: #d9cdb2;
+  --ink: #26301c;
+  --muted: #6b7259;
+  --lcd: #c9d8a8;
+  --lcd-hi: #dbe7bd;
+  --green: #2f7d4f;
+  --red: #c8423b;
+  --amber-soft: #fbeccb;
+  --calm: #4b5fa8;
+  --px: 4px;
+  --pixel-border: 0 calc(-1 * var(--px)) 0 0 var(--ink), 0 var(--px) 0 0 var(--ink),
+    calc(-1 * var(--px)) 0 0 0 var(--ink), var(--px) 0 0 0 var(--ink);
+  --drop: 0 calc(var(--px) * 3) 0 0 rgba(38, 48, 28, 0.18);
+  --lcd-bg: linear-gradient(rgba(38, 48, 28, 0.06) 1px, transparent 1px) 0 0 / 4px 4px,
+    linear-gradient(90deg, rgba(38, 48, 28, 0.06) 1px, transparent 1px) 0 0 / 4px 4px, var(--lcd);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  background: #1d2416;
+  color: var(--ink);
+  font-family: "Galmuri11", "Malgun Gothic", sans-serif;
+  font-synthesis: none;
+}
+
+/* ------------------------------------------------ 무대: 1280×720 고정, 화면에 맞춰 확대 */
+#stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; }
+.slide {
+  position: absolute; inset: 0;
+  padding: 48px 64px 60px;
+  background: radial-gradient(#f3dfc6 1.5px, transparent 1.6px) 0 0 / 18px 18px, var(--bg);
+  display: none; flex-direction: column;
+}
+.slide.is-active { display: flex; }
+.slide h2 { margin: 0 0 6px; font-size: 38px; font-weight: normal; line-height: 1.25; }
+.kicker { font-size: 17px; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; }
+.lead { font-size: 22px; color: var(--muted); margin: 0 0 22px; }
+.body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+.foot {
+  position: absolute; left: 64px; right: 64px; bottom: 20px;
+  display: flex; justify-content: space-between; font-size: 14px; color: var(--muted);
+}
+
+/* 오른쪽 위 목차 칸: 지금 어느 부분인지 */
+.secbar { position: absolute; right: 64px; top: 22px; display: flex; gap: 6px; }
+.secbar span { font-size: 13px; padding: 3px 7px; color: var(--muted); box-shadow: 0 0 0 2px var(--line); background: var(--card); }
+.secbar span.on { background: var(--ink); color: var(--lcd); box-shadow: 0 0 0 2px var(--ink); }
+
+/* ------------------------------------------------ 공통 블록 */
+.card { background: var(--card); box-shadow: var(--pixel-border), var(--drop); padding: 20px 22px; margin: var(--px); }
+.card h3 { margin: 0 0 10px; font-size: 24px; font-weight: normal; }
+.card p, .card li { font-size: 19px; line-height: 1.55; margin: 0; }
+.card ul { margin: 0; padding-left: 0; list-style: none; }
+.card li { padding-left: 22px; position: relative; }
+.card li::before { content: "▸"; position: absolute; left: 0; color: var(--green); }
+.lcd { background: var(--lcd-bg); box-shadow: var(--pixel-border), var(--drop); margin: var(--px); }
+.chip { display: inline-block; padding: 5px 11px; margin: 4px; font-size: 17px; background: var(--lcd); box-shadow: 0 0 0 3px var(--ink); }
+.muted { color: var(--muted); }
+.good { color: var(--green); }
+.warn { color: var(--red); }
+.row { display: flex; gap: 24px; align-items: stretch; }
+.row > * { flex: 1; }
+.note-line { margin-top: 18px; font-size: 19px; padding: 11px 16px; background: var(--amber-soft); box-shadow: 0 0 0 3px var(--ink); }
+.checks { list-style: none; padding-left: 0; margin: 0; }
+.checks li { font-size: 20px; padding-left: 26px; position: relative; line-height: 1.6; }
+.checks li::before { position: absolute; left: 0; }
+.checks li.ok::before { content: "✔"; color: var(--green); }
+.checks li.no::before { content: "△"; color: var(--red); }
+.shot { display: block; max-width: 100%; box-shadow: var(--pixel-border), var(--drop); margin: var(--px); background: var(--card); }
+.badge { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; background: var(--ink); color: var(--lcd); font-size: 18px; flex: none; }
+
+/* 사진·영상 자리 */
+.media { position: relative; overflow: hidden; background: #e9e0cc; box-shadow: var(--pixel-border); margin: var(--px); }
+.media img, .media video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+.media .ph {
+  position: absolute; inset: 10px; border: 3px dashed var(--muted);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  font-size: 18px; color: var(--muted); text-align: center; padding: 12px;
+}
+.media .ph b { font-weight: normal; font-size: 24px; color: var(--ink); }
+.media .ph .play { font-size: 54px; color: var(--green); line-height: 1; }
+.media.is-loaded .ph { display: none; }
+.media:not(.is-loaded) img, .media:not(.is-loaded) video { visibility: hidden; }
+
+/* 캐릭터 화면(대시보드 축소판) */
+.screen { position: relative; overflow: hidden; box-shadow: var(--pixel-border), var(--drop); margin: var(--px); }
+.screen .scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.screen .pet { position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%); image-rendering: pixelated; }
+.screen .bubble {
+  position: absolute; left: 50%; top: 8%; transform: translateX(-50%);
+  background: #fff; padding: 6px 12px; font-size: 18px; white-space: nowrap; box-shadow: 0 0 0 3px var(--ink);
+}
+.screen .zzz { position: absolute; right: 20%; top: 32%; font-size: 26px; color: #fff; animation: zzz 2.4s steps(3) infinite; }
+@keyframes zzz { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0.2; } }
+/* 표지: 고전 다마고치 → PLANTCHI BOT 캐릭터로 계단식(8비트)으로 바뀌기를 반복 */
+.screen .classic {
+  position: absolute; inset: 0; z-index: 2; background: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  animation: classic-swap 9s steps(1) infinite;
+}
+.screen .classic img { height: 100%; width: auto; image-rendering: pixelated; }
+.screen .era {
+  position: absolute; left: 12px; bottom: 12px; z-index: 3; padding: 5px 10px; font-size: 16px;
+  background: var(--ink); color: var(--lcd); box-shadow: 0 0 0 3px var(--lcd);
+}
+.screen .era.old { animation: classic-swap 9s steps(1) infinite; }
+.screen .era.new { animation: classic-swap-in 9s steps(1) infinite; }
+@keyframes classic-swap {
+  0%, 32% { opacity: 1; }
+  34% { opacity: 0.8; } 36% { opacity: 0.6; } 38% { opacity: 0.4; } 40% { opacity: 0.2; }
+  42%, 82% { opacity: 0; }
+  84% { opacity: 0.2; } 86% { opacity: 0.4; } 88% { opacity: 0.6; } 90% { opacity: 0.8; }
+  92%, 100% { opacity: 1; }
+}
+@keyframes classic-swap-in {
+  0%, 32% { opacity: 0; }
+  42%, 82% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen .classic, .screen .era.old { animation: none; opacity: 0; }
+  .screen .era.new { animation: none; opacity: 1; }
+}
+.hop { animation: hop 1.2s steps(2) infinite; }
+@keyframes hop { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-10px); } }
+
+/* ------------------------------------------------ 장별 */
+/* 1 표지 */
+.cover { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; height: 100%; }
+.cover .logo { font-size: 78px; line-height: 1; letter-spacing: 2px; margin: 0 0 14px; font-weight: normal; }
+.cover .logo span { color: var(--green); }
+.cover .tag { font-size: 22px; margin: 0 0 18px; color: var(--muted); }
+.cover .sub { font-size: 27px; margin: 0 0 34px; line-height: 1.45; }
+.cover .team { font-size: 20px; color: var(--muted); line-height: 1.7; }
+
+/* 2 목차 */
+.toc { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 40px; }
+.toc .it { display: flex; gap: 16px; align-items: center; padding: 10px 16px; background: var(--card); box-shadow: var(--pixel-border); margin: var(--px); }
+.toc .n { font-size: 30px; color: var(--green); width: 46px; }
+.toc b { font-weight: normal; font-size: 24px; display: block; }
+.toc small { font-size: 16px; color: var(--muted); }
+
+/* 3 문제 정의 */
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.three .card { padding: 26px 22px; }
+.three .screen.mini { height: 150px; margin: 0 0 14px; box-shadow: 0 0 0 3px var(--ink); }
+.three .screen.mini .pet { width: 124px !important; bottom: 6%; }
+.three .photo { display: block; width: 100%; height: 240px; object-fit: cover; margin: 0 0 14px; box-shadow: 0 0 0 3px var(--ink); }
+
+/* 4 감지·표현·돌봄 */
+.flow3 { display: grid; grid-template-columns: 1fr 50px 1fr 50px 1fr; align-items: stretch; }
+.flow3 .arrow { display: flex; align-items: center; justify-content: center; font-size: 38px; color: var(--green); }
+.flow3 .icon { font-size: 48px; margin-bottom: 8px; }
+.flow3 h3 { font-size: 30px; }
+
+/* 4단계: 감지 → 판단 → 표현 → 행동 */
+.idea4 { display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr 40px 1fr; align-items: stretch; }
+.idea4 .arrow { display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--green); }
+.idea4 .card { padding: 26px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 210px; }
+.idea4 .step { display: inline-block; background: var(--ink); color: var(--lcd); padding: 3px 10px; font-size: 16px; margin-bottom: 10px; }
+.idea4 h3 { font-size: 30px; margin-bottom: 10px; }
+.idea4 p { font-size: 18px; line-height: 1.55; }
+.idea4 .screen.mini { height: 92px; margin: 0 0 12px; box-shadow: 0 0 0 3px var(--ink); }
+.idea4.compact .card { min-height: 165px; padding: 16px 14px; }
+.idea4.compact h3 { font-size: 26px; margin-bottom: 6px; }
+.numvs { display: grid; grid-template-columns: 1fr 50px 1fr; align-items: stretch; margin-bottom: 14px; }
+.numvs .arrow { display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--green); }
+.numvs small { display: block; font-size: 15px; color: var(--muted); margin-bottom: 6px; }
+.numvs .lcd { padding: 12px 18px; display: flex; flex-direction: column; justify-content: center; }
+.numvs .nums { display: flex; gap: 22px; font-size: 26px; }
+.numvs .chr { display: flex; gap: 16px; align-items: center; padding: 10px 16px; }
+.numvs .chr .screen { width: 120px; height: 80px; flex: none; margin: 0; box-shadow: 0 0 0 3px var(--ink); }
+.numvs .chr .pet { width: 64px; bottom: 4%; }
+.numvs .chr b { font-weight: normal; font-size: 19px; }
+.learn { margin-top: 12px; font-size: 19px; padding: 11px 16px; background: var(--lcd); box-shadow: 0 0 0 3px var(--ink); }
+.learn b { font-weight: normal; color: var(--green); margin-right: 8px; }
+
+/* 5 구조도 */
+.arch {
+  display: grid; grid-template-columns: 175px 52px 185px 118px 330px 66px 186px;
+  grid-template-rows: auto 64px auto; align-items: center; justify-content: center;
+}
+.node { background: var(--card); box-shadow: var(--pixel-border), var(--drop); padding: 14px 12px; text-align: center; margin: var(--px); }
+.node .role { font-size: 15px; color: var(--muted); }
+.node b { display: block; font-weight: normal; font-size: 22px; margin: 4px 0 6px; }
+.node small { font-size: 16px; line-height: 1.45; display: block; }
+.node.pi { background: var(--ink); color: var(--lcd); }
+.node.pi .role { color: var(--lcd-hi); }
+.node.pi .inner { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+.node.pi .inner span { background: var(--lcd); color: var(--ink); padding: 6px 8px; font-size: 16px; white-space: nowrap; }
+.link { text-align: center; font-size: 14px; color: var(--muted); line-height: 1.3; }
+.link .a { font-size: 32px; color: var(--green); line-height: 1; }
+.vlink { grid-column: 5; text-align: center; font-size: 16px; color: var(--muted); }
+.vlink .a { font-size: 32px; color: var(--green); }
+.flows { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+.flows div { font-size: 18px; padding: 10px 14px; background: var(--card); box-shadow: 0 0 0 3px var(--ink); }
+.flows b { font-weight: normal; color: var(--green); margin-right: 8px; }
+
+/* 5 구조도: 사람 비유 */
+.body6 {
+  display: grid; grid-template-columns: 250px 64px 1fr 64px 250px;
+  grid-template-rows: auto 52px auto; align-items: center;
+  grid-template-areas: "sense a1 pi a2 face" "l1 l1 a3 l2 l2" "l1 l1 leg l2 l2";
+}
+.body6 { word-break: keep-all; }
+.b6 { background: var(--card); box-shadow: var(--pixel-border), var(--drop); margin: var(--px); padding: 14px 12px 12px; text-align: center; }
+.b6 .ic { height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+.b6 .meta { font-size: 28px; line-height: 1.15; }
+.b6 b { display: block; font-weight: normal; font-size: 17px; color: var(--muted); margin: 4px 0 6px; }
+.b6 small { display: block; font-size: 16px; line-height: 1.4; }
+.b6.pi { background: var(--ink); color: var(--lcd); padding: 12px 14px 14px; }
+.b6.pi .head { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }
+.b6.pi .head .meta { color: var(--lcd-hi); }
+.b6.pi .head b { color: var(--lcd); margin: 0; }
+.b6.pi .row { display: grid; grid-template-columns: 1fr 26px 1fr; align-items: stretch; }
+.b6.pi .row > span { align-self: center; }
+.b6.pi .in { background: var(--lcd); color: var(--ink); padding: 10px 8px; }
+.b6.pi .in .ic { height: 40px; margin-bottom: 2px; }
+.b6.pi .in .meta { font-size: 21px; }
+.b6.pi .in b { font-size: 15px; margin: 2px 0 4px; }
+.b6.pi .in small { font-size: 14px; }
+.b6.pi .row > span { text-align: center; font-size: 20px; color: var(--lcd-hi); }
+.b6.leg { justify-self: center; width: 380px; display: grid; grid-template-columns: 76px 1fr; align-items: center; text-align: left; gap: 0 10px; }
+.b6.leg .ic { grid-row: span 3; margin: 0; }
+.b6.leg b, .b6.leg .meta { margin: 0; }
+.b6a { text-align: center; font-size: 14px; color: var(--muted); line-height: 1.3; }
+.b6a i { display: block; font-style: normal; font-size: 30px; color: var(--green); line-height: 1; }
+.b6lane { align-self: stretch; margin: 30px 8px 4px; padding: 12px 16px; box-shadow: 0 0 0 3px var(--ink); display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.b6lane b { font-weight: normal; font-size: 21px; }
+.b6lane span { font-size: 16px; line-height: 1.45; color: var(--muted); }
+.b6lane.up { background: var(--lcd); }
+.b6lane.up b { color: var(--green); }
+.b6lane.down { background: var(--card); }
+.b6lane.down b { color: var(--calm); }
+.px { display: block; image-rendering: pixelated; }
+
+/* 6 하드웨어 표 */
+.hw { width: 100%; border-collapse: collapse; background: var(--card); box-shadow: var(--pixel-border), var(--drop); }
+.hw th, .hw td { font-size: 18px; text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--line); vertical-align: top; }
+.hw th { background: var(--ink); color: var(--lcd); font-weight: normal; }
+.hw td:first-child { white-space: nowrap; }
+
+/* 7 팀·일정 */
+.team4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.team4 .card { padding: 12px 14px; }
+.team4 .name { font-size: 21px; }
+.team4 .name span { font-size: 15px; color: var(--muted); margin-left: 6px; }
+.team4 p { font-size: 16px; margin-top: 4px; }
+.team4 .me { background: var(--lcd); }
+.timeline { display: grid; grid-template-columns: repeat(7, 1fr); margin: 16px 0 10px; position: relative; }
+.timeline::before { content: ""; position: absolute; left: 6%; right: 6%; top: 15px; height: 5px; background: var(--ink); }
+.tl { text-align: center; position: relative; padding: 0 4px; }
+.tl .dot { width: 24px; height: 24px; margin: 5px auto 8px; background: var(--card); box-shadow: 0 0 0 4px var(--ink); position: relative; }
+.tl.hot .dot { background: var(--green); }
+.tl .d { font-size: 19px; }
+.tl p { font-size: 15px; line-height: 1.4; margin: 4px 0 0; color: var(--muted); }
+.meet { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; align-items: stretch; }
+
+/* 협업: 시작 4단계, 규칙 4개, 계획 vs 실제 */
+.idea4.start .card { min-height: 230px; padding: 22px 14px; }
+.idea4.start h3 { font-size: 25px; }
+.idea4.start p { font-size: 17px; }
+.rules4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }
+.rules4 .card { padding: 12px 14px; }
+.rules4 h3 { font-size: 19px; margin-bottom: 4px; color: var(--green); }
+.rules4 p { font-size: 16px; line-height: 1.5; }
+.plan { display: grid; grid-template-columns: 56px repeat(7, 1fr); gap: 8px; }
+.plan > div { font-size: 15px; line-height: 1.4; padding: 8px; background: var(--card); box-shadow: 0 0 0 2px var(--line); }
+.plan .h { background: var(--ink); color: var(--lcd); text-align: center; font-size: 17px; box-shadow: none; }
+.plan .lab { background: none; box-shadow: none; display: flex; align-items: center; font-size: 17px; color: var(--muted); padding: 0; }
+.plan .real { background: var(--lcd); box-shadow: 0 0 0 2px var(--ink); }
+.plan .hot { background: var(--green); color: #fff; }
+.plan .late { background: var(--amber-soft); }
+
+/* 문제 해결: 팀 개발 표, 하드웨어 통합 4칸 */
+.hw.prob th, .hw.prob td { font-size: 17px; padding: 9px 12px; line-height: 1.45; }
+.hw.prob td:first-child { white-space: normal; width: 38%; }
+.hw.prob td:last-child { color: var(--green); width: 22%; }
+.fix4 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.fix4 .card { padding: 12px 16px; }
+.fix4 h3 { font-size: 20px; margin-bottom: 6px; }
+.fix4 p { font-size: 17px; line-height: 1.5; }
+.fix4 p b { font-weight: normal; color: var(--green); margin-right: 8px; }
+
+/* 8 상태 판단 */
+.moods4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.mood { background: var(--card); box-shadow: var(--pixel-border), var(--drop); margin: var(--px); padding: 10px 10px 14px; }
+.mood .screen { height: 160px; margin: 0 0 10px; box-shadow: 0 0 0 3px var(--ink); }
+.mood .screen .bubble { font-size: 14px; padding: 4px 8px; top: 6%; }
+.mood h3 { margin: 0; font-size: 22px; font-weight: normal; }
+.mood p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; }
+.rules2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+.rules2 div { font-size: 17px; line-height: 1.5; padding: 10px 14px; background: var(--card); box-shadow: 0 0 0 3px var(--ink); }
+.rules2 b { font-weight: normal; color: var(--green); display: block; font-size: 19px; }
+
+/* 9 대시보드 전체 */
+.dash { display: grid; grid-template-columns: 330px 1fr; gap: 26px; align-items: center; height: 100%; }
+.dash .legend { display: flex; flex-direction: column; gap: 10px; }
+.dash .legend div { display: flex; gap: 12px; align-items: center; font-size: 20px; }
+.dash .legend small { display: block; font-size: 15px; color: var(--muted); }
+.dash .pic { position: relative; justify-self: center; }
+.dash .pic img { height: 520px; }
+.dash .pic .badge { position: absolute; box-shadow: 0 0 0 3px #fff; }
+
+/* 10·13 캡처 + 설명 */
+.shots { display: flex; gap: 18px; align-items: flex-start; }
+.shots img { height: 380px; }
+.explain { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.explain .card { padding: 12px 16px; margin: var(--px); }
+.explain h3 { font-size: 20px; margin-bottom: 4px; }
+.explain p { font-size: 16px; }
+.explain .dev { background: var(--amber-soft); }
+
+/* 11 센서 카드 */
+.sensor-shot { display: block; margin: 0 auto 18px; width: 900px; }
+.sensor3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.sensor3 .card { padding: 14px 16px; }
+.sensor3 h3 { font-size: 21px; }
+.sensor3 p { font-size: 16px; }
+
+/* 12·14·17 시연 영상 */
+.demo { display: grid; grid-template-columns: 1fr 330px; gap: 26px; height: 100%; }
+.demo .media { height: 100%; }
+.demo .side { display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.demo .side h3 { font-weight: normal; font-size: 22px; margin: 0 0 4px; }
+.demo .step { display: flex; gap: 10px; align-items: flex-start; font-size: 18px; line-height: 1.45; background: var(--card); box-shadow: 0 0 0 3px var(--ink); padding: 10px 12px; }
+.demo .step .badge { width: 26px; height: 26px; font-size: 15px; }
+.demo .side .muted { font-size: 15px; line-height: 1.5; }
+
+/* 15 햇빛과 물 */
+.sunwater { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.sunwater .card { padding: 22px 24px; }
+.sunwater .icon { font-size: 46px; }
+.sunwater .state { margin-top: 14px; display: inline-block; font-size: 17px; padding: 5px 12px; background: var(--lcd); box-shadow: 0 0 0 3px var(--ink); }
+.sunwater .state.part { background: var(--amber-soft); }
+.topic { font-size: 20px; margin-bottom: 16px; padding: 10px 16px; background: var(--card); box-shadow: 0 0 0 3px var(--ink); }
+
+/* 16 안전 */
+.rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.rules .card { padding: 20px 20px; }
+.rules .n { display: inline-block; background: var(--ink); color: var(--lcd); padding: 4px 12px; font-size: 18px; margin-bottom: 12px; }
+.rules h3 { font-size: 26px; }
+.testcond { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+
+/* 18 센서 교체 */
+.ba { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; }
+.ba .arrow { display: flex; align-items: center; justify-content: center; font-size: 42px; color: var(--green); }
+.ba .media { height: 150px; margin-bottom: 14px; }
+.bar { height: 28px; background: #e9e0cc; box-shadow: 0 0 0 3px var(--ink); margin: 10px 0 8px; position: relative; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--green); }
+.bar.bad i { background: var(--red); }
+.ba .stat { font-size: 21px; }
+.ba .stat b { font-weight: normal; font-size: 38px; }
+
+/* 19 정지 재전송 */
+.flow4 { display: grid; grid-template-columns: 1fr 36px 1fr 36px 1fr 36px 1fr; align-items: stretch; }
+.flow4 .arrow { display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--green); }
+.flow4 .card { padding: 18px 16px; }
+.flow4 .tag { font-size: 15px; color: var(--muted); }
+.flow4 h3 { font-size: 23px; margin: 6px 0 10px; }
+.flow4 p { font-size: 17px; line-height: 1.55; }
+.flow4 .hl { font-size: 34px; color: var(--green); display: block; margin: 6px 0; }
+
+/* 20 테스트 */
+.tests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+.tests .lcd { padding: 18px 10px; text-align: center; }
+.tests .big { font-size: 66px; line-height: 1; }
+.tests p { margin: 8px 0 0; font-size: 19px; }
+
+/* 21 한계 */
+.two { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+.two li { font-size: 19px; margin-bottom: 6px; }
+
+/* 22 마무리 */
+.end { display: grid; grid-template-columns: 1fr 400px; gap: 40px; align-items: center; height: 100%; }
+.end .qa { font-size: 90px; line-height: 1; margin: 0 0 10px; color: var(--green); }
+.end .slogan { font-size: 40px; line-height: 1.4; margin: 0 0 24px; }
+.end .slogan span { color: var(--green); }
+.end .checks li { font-size: 18px; }
+
+/* 도입 영상: 화면 전체에 꽉 차게, 장에 들어가면 처음부터 재생 */
+.slide.intro { padding: 0; background: #000; }
+.slide.intro .media { position: absolute; inset: 0; margin: 0; box-shadow: none; background: #000; }
+.slide.intro .media video { object-fit: contain; }
+.slide.intro .foot, .slide.intro .progress, .slide.intro .secbar { display: none; }
+.vision-tag {
+  position: absolute; left: 24px; top: 20px;
+  background: var(--ink); color: var(--lcd); padding: 8px 14px; font-size: 18px; box-shadow: 0 0 0 3px var(--lcd);
+}
+.tap-hint {
+  position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); display: none;
+  background: var(--ink); color: var(--lcd); padding: 10px 18px; font-size: 20px; box-shadow: 0 0 0 3px var(--lcd);
+}
+.slide.needs-tap .tap-hint { display: block; }
+
+/* ------------------------------------------------ 진행 표시·발표자 메모 */
+.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; display: flex; gap: 3px; padding: 0 3px; }
+.progress i { flex: 1; background: var(--line); }
+.progress i.on { background: var(--green); }
+#notes {
+  position: fixed; left: 0; right: 0; bottom: 0; max-height: 36vh; overflow: auto;
+  background: rgba(20, 26, 15, 0.94); color: #eef3dd; padding: 14px 22px 18px;
+  font-size: 17px; line-height: 1.65; display: none; z-index: 10;
+}
+#notes.is-open { display: block; }
+#notes .t { color: var(--lcd); margin-bottom: 4px; }
+#help { position: fixed; right: 12px; top: 8px; color: rgba(255, 255, 255, 0.45); font-size: 13px; z-index: 11; transition: opacity 0.4s; }
+body.is-full #help { opacity: 0; }
+
+/* ------------------------------------------------ 수정 모드 */
+#edit-toggle {
+  position: fixed; left: 12px; bottom: 14px; z-index: 12; font: inherit; font-size: 14px;
+  background: var(--ink); color: var(--lcd); border: 0; padding: 7px 12px; cursor: pointer;
+  box-shadow: 0 0 0 2px var(--lcd); opacity: 0.45; transition: opacity 0.2s;
+}
+#edit-toggle:hover, #edit-toggle:focus-visible, body.is-editing #edit-toggle { opacity: 1; }
+body.is-full #edit-toggle { display: none; }
+#edit-bar {
+  position: fixed; right: 12px; bottom: 14px; z-index: 12; width: min(400px, calc(100vw - 24px));
+  background: var(--ink); color: var(--lcd); padding: 12px 14px 14px; font-size: 14px;
+  box-shadow: 0 0 0 3px var(--lcd); display: flex; flex-direction: column; gap: 8px;
+}
+#edit-bar[hidden] { display: none; }
+#edit-bar .row { display: flex; gap: 6px; align-items: center; }
+#edit-bar .row .t { flex: 1; color: var(--lcd-hi); font-size: 15px; }
+#edit-bar button {
+  font: inherit; font-size: 14px; border: 0; padding: 6px 10px; cursor: pointer;
+  background: var(--lcd); color: var(--ink);
+}
+#edit-bar button.primary { background: var(--green); color: #fff; }
+#edit-bar button:disabled { opacity: 0.5; cursor: default; }
+#edit-bar button:focus-visible, #edit-toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+#edit-bar label { display: flex; flex-direction: column; gap: 4px; color: var(--lcd-hi); }
+#edit-notes {
+  font: 14px/1.5 "Malgun Gothic", sans-serif; height: 120px; resize: vertical; padding: 8px;
+  border: 0; background: #f6f1e4; color: var(--ink);
+}
+#edit-msg { color: #eef3dd; line-height: 1.45; min-height: 1.45em; }
+body.is-editing [data-eid] { cursor: text; }
+body.is-editing [data-eid]:hover { outline: 2px dashed var(--green); outline-offset: 2px; }
+body.is-editing [data-eid]:focus { outline: 2px solid var(--green); outline-offset: 2px; background: rgba(201, 216, 168, 0.35); }
+</style>
+<div id="help">← → 넘기기 · F 전체 화면 · N 발표자 메모 · K 영상 재생 · R 영상 처음부터</div>
+<div id="stage">
+<!-- 1. 표지 -->
+<section class="slide" data-notes="안녕하세요, Physical AI 기초 과정 6팀 PLANTCHI BOT 발표를 맡은 신효섭입니다. 저희가 만든 건 식물이 표정으로 말하고, 사람이 웹으로 로봇을 조종해 밝은 자리로 옮길 수 있는 이동형 스마트 화분입니다. 먼저 발표 순서부터 말씀드리겠습니다." data-sec="0" data-time="0:20">
+<div class="cover">
+<div>
+<div class="kicker" data-eid="s1e0">PHYSICAL AI 기초 과정 · 6팀 · 최종 발표</div>
+<h1 class="logo" data-eid="s1e1">PLANTCHI<br/><span>BOT</span></h1>
+<p class="tag" data-eid="s1e2">식물 다마고치 대시보드 × Raspberry Pi 로봇</p>
+<p class="sub" data-eid="s1e3">식물이 표정으로 말하고,<br/>웹으로 조종해 밝은 자리로 옮기는<br/>이동형 스마트 화분</p>
+<div class="team" data-eid="s1e4">우지현 · 신효섭 · 김주연 · 김서연<br/>2026. 11. 03</div>
+</div>
+<div class="screen" style="height: 400px;">
+<img alt="" class="scene" src="assets/bg/room-day.png"/>
+<div class="bubble" data-eid="s1e5">빛이 충분해요! 기분 좋아요</div>
+<img alt="행복한 바질" class="pet hop" src="assets/chars/basil-grown-happy.png" style="width: 240px;"/>
+<div class="classic"><img alt="고전 다마고치 화면" src="assets/cover/classic-tamagotchi.png"/></div>
+<div class="era old" data-eid="s1e6">고전 다마고치</div>
+<div class="era new" data-eid="s1e7">PLANTCHI BOT</div>
+</div>
+</div>
+</section>
+<!-- 2. 목차 (다음 장에서 도입 영상) -->
+<section class="slide" data-notes="발표는 일곱 부분입니다. 기획과 시스템 구성을 먼저 말씀드리고, 핵심 기능 네 가지를 실제 로봇 시연 영상과 함께 보여 드리겠습니다. 이어서 비전공자 네 명이 어떻게 계획하고 협업했는지, 그 과정에서 팀 개발과 하드웨어 통합 중에 겪은 문제와 해결, 결과와 한계를 정리하고 질문을 받겠습니다. 그럼 먼저 저희가 왜 이걸 만들었는지, 짧은 영상으로 보여 드리겠습니다. (→ 누르면 영상 시작)" data-sec="0" data-time="0:15">
+<div class="kicker" data-eid="s2e0">CONTENTS</div>
+<h2 data-eid="s2e1">목차</h2>
+<div class="body">
+<div class="toc">
+<div class="it"><span class="n" data-eid="s2e2">01</span><div><b data-eid="s2e3">기획</b><small data-eid="s2e4">문제 정의 › 감지 → 판단 → 표현 → 행동</small></div></div>
+<div class="it"><span class="n" data-eid="s2e5">05</span><div><b data-eid="s2e6">문제 해결</b><small data-eid="s2e7">A 팀 개발 › B 하드웨어 통합 › C 거리 측정 › D 바퀴 정지</small></div></div>
+<div class="it"><span class="n" data-eid="s2e8">02</span><div><b data-eid="s2e9">시스템 구성</b><small data-eid="s2e10">시스템 구조 › 하드웨어</small></div></div>
+<div class="it"><span class="n" data-eid="s2e11">06</span><div><b data-eid="s2e12">결과와 한계</b><small data-eid="s2e13">최종 결과 › 남은 한계 › 우리가 그리는 모습</small></div></div>
+<div class="it"><span class="n" data-eid="s2e14">03</span><div><b data-eid="s2e15">핵심 기능</b><small data-eid="s2e16">① 상태 판단 › ② 웹 대시보드 › ③ 햇빛과 물 › ④ 원격 조종과 안전 · 시연 영상 3편</small></div></div>
+<div class="it"><span class="n" data-eid="s2e17">07</span><div><b data-eid="s2e18">Q&amp;A</b><small data-eid="s2e19">질문과 답변</small></div></div>
+<div class="it"><span class="n" data-eid="s2e20">04</span><div><b data-eid="s2e21">협업 과정</b><small data-eid="s2e22">비전공자 팀의 시작 › 역할과 규칙 › 6일 일정</small></div></div>
+</div>
+</div>
+</section>
+<!-- 도입 영상: 우리 식물은 왜 자꾸 시들까? (장에 들어가면 소리와 함께 처음부터 재생) -->
+<section class="slide intro" data-notes="도입 영상(24초) · 말하지 않고 기다리기. 끝나면: '네, 이렇게 식물의 표정을 보고, 직접 옮겨 줄 수 있는 PLANTCHI BOT입니다.' 하고 문제 정의로 → (R 처음부터 다시 · K 재생/멈춤)" data-sec="0" data-time="0:25">
+<div class="media" data-autoplay="" data-kind="video" data-src="videos/intro.mp4">
+<div class="ph"><span class="play">▶</span><b>도입 영상 자리</b>videos 폴더에 intro.mp4 로 넣으면 여기서 재생됩니다</div>
+</div>
+<div class="tap-hint">▶ R 키 또는 화면 클릭으로 영상 재생</div>
+</section>
+<!-- 3. 문제 정의 -->
+<section class="slide" data-notes="강아지는 짖거나 움직여서 필요한 걸 알리지만, 식물은 사람이 잎과 자리를 살펴봐야 알 수 있습니다. 방금 영상처럼, 식물은 아프다고 말하지 못합니다. 창가에서 조금만 멀어져도 빛이 부족해지고, 실내 공기가 건조하거나 눅눅해져도 눈에 보이지 않습니다. 결국 잎이 처지고 나서야 문제를 알게 되죠. 그래서 식물의 상태를 눈에 보이게 만들고, 필요한 것을 직접 챙겨 줄 방법을 고민했습니다." data-sec="1" data-time="0:20">
+<div class="kicker" data-eid="s4e0">01 기획 · 문제 정의</div>
+<h2 data-eid="s4e1">식물은 아프다고 말하지 못합니다</h2>
+<p class="lead" data-eid="s4e2">동물은 소리와 몸짓으로 필요를 알리지만, 식물은 사람이 살펴봐야 알 수 있습니다</p>
+<div class="body">
+<div class="three">
+<div class="card">
+<img alt="창가에서 떨어진 어두운 구석의 화분" class="photo" src="assets/problem/p1.jpg" style="object-position: 50% 40%;"/>
+<h3 data-eid="s4e3">어두운 자리</h3><p data-eid="s4e4">창가에서 멀어지면 빛이 부족하지만, 사람 눈으로는 알아채기 어렵습니다.</p>
+</div>
+<div class="card">
+<img alt="습도계 25%와 82%, 끝이 마른 잎" class="photo" src="assets/problem/p2.jpg" style="object-position: 50% 100%;"/>
+<h3 data-eid="s4e5">건조하거나 눅눅한 공기</h3><p data-eid="s4e6">식물이 느끼는 실내 습도 변화는 사람이 느끼는 것과 달라 놓치기 쉽습니다.</p>
+</div>
+<div class="card">
+<img alt="누렇게 변해 처진 잎" class="photo" src="assets/problem/p3.jpg" style="object-position: 50% 55%;"/>
+<h3 data-eid="s4e7">늦게 오는 신호</h3><p data-eid="s4e8">잎이 처지고 색이 바랜 뒤에야 문제가 있었다는 걸 알게 됩니다.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. 핵심 아이디어 -->
+<section class="slide" data-notes="숫자만 보여 주는 화면은 정확하지만 한눈에 와닿지 않습니다. 10월 31일에 실제로 잰 밝기 0.911, 습도 69%, 거리 50.7cm만 보면 좋은 상태인지 바로 알기 어렵죠. 같은 값을 캐릭터로 보면 '기분 좋아요' 한마디로 끝납니다. 그래서 핵심 개념은 감지 → 판단 → 표현 → 행동입니다. 감지: 센서로 밝기, 공기 습도, 앞 거리를 잽니다. 판단: 서버가 측정값을 기준값과 비교해 식물 상태를 정합니다. 표현: 웹 대시보드의 캐릭터가 표정과 메시지로 알려 줍니다. 행동: 사용자가 웹으로 로봇을 조종해 밝은 곳으로 옮기고, 위험하면 로봇이 이동을 제한합니다. 지금은 감지, 판단, 표현까지 자동이고, 옮기는 건 사람이 웹으로 조종합니다. ※ 스스로 밝은 곳을 찾는 자율주행과 자동 급수는 아직 없다고 먼저 말하기." data-sec="1" data-time="0:50">
+<div class="kicker" data-eid="s5e0">01 기획 · 핵심 아이디어</div>
+<h2 data-eid="s5e1">감지 → 판단 → 표현 → 행동</h2>
+<p class="lead" data-eid="s5e2" style="margin-bottom: 14px;">센서로 재고, 서버가 판단하고, 캐릭터가 알리고, 사람이 로봇으로 돌봅니다</p>
+<div class="body">
+<div class="numvs">
+<div class="lcd"><small data-eid="s5e3">숫자만 있는 화면 · 10/31 실측값</small><div class="nums"><span data-eid="s5e4">밝기 0.911</span><span data-eid="s5e5">습도 69%</span><span data-eid="s5e6">거리 50.7cm</span></div></div>
+<div class="arrow" data-eid="s5e7">▶</div>
+<div class="card chr">
+<div class="screen mini"><img alt="" class="scene" src="assets/bg/room-day.png"/><img alt="행복한 바질" class="pet" src="assets/chars/basil-grown-happy.png"/></div>
+<div><small data-eid="s5e8">같은 값을 캐릭터로 보면</small><b data-eid="s5e9">happy · "빛이 충분해요! 기분 좋아요"</b></div>
+</div>
+</div>
+<div class="idea4 compact">
+<div class="card">
+<span class="step" data-eid="s5e10">1</span><h3 data-eid="s5e11">감지</h3>
+<p data-eid="s5e12">센서로 밝기 · 공기 습도 · 앞 거리를 측정</p>
+</div>
+<div class="arrow" data-eid="s5e13">▶</div>
+<div class="card">
+<span class="step" data-eid="s5e14">2</span><h3 data-eid="s5e15">판단</h3>
+<p data-eid="s5e16">서버가 측정값을 기준값과 비교해 식물 상태 결정</p>
+</div>
+<div class="arrow" data-eid="s5e17">▶</div>
+<div class="card">
+<span class="step" data-eid="s5e18">3</span><h3 data-eid="s5e19">표현</h3>
+<p data-eid="s5e20">캐릭터의 표정과 메시지가 바뀜</p>
+</div>
+<div class="arrow" data-eid="s5e21">▶</div>
+<div class="card">
+<span class="step" data-eid="s5e22">4</span><h3 data-eid="s5e23">행동</h3>
+<p data-eid="s5e24">사용자가 웹으로 로봇을 원격 조종 · 위험하면 이동 제한</p>
+</div>
+</div>
+<div class="note-line" data-eid="s5e25">지금은 감지 · 판단 · 표현이 자동이고, 이동은 사람이 웹으로 조종합니다 · 스스로 찾아가는 자율주행과 자동 급수는 아직 없습니다</div>
+</div>
+</section>
+<!-- 5. 시스템 구조 -->
+<section class="slide" data-notes="(감각기관 → 두뇌 → 얼굴 순서로 위 줄을 가리킨 뒤, 아래 다리를 가리키기) 구조는 사람에 비유하면 쉽습니다. 아두이노는 감각기관, 라즈베리파이는 두뇌, 그 안의 서버는 지휘소, 웹 대시보드는 얼굴과 리모컨, 라즈봇은 다리입니다. (왼쪽 아래 초록 칸) 센서값은 아두이노에서 라즈베리파이를 거쳐 웹으로 올라오고, (오른쪽 아래 칸) 조종 명령은 웹에서 서버를 거쳐 바퀴로 내려갑니다." data-sec="2" data-time="0:50">
+<div class="kicker" data-eid="s6e0">02 시스템 구성 · 시스템 구조</div>
+<h2 data-eid="s6e1">사람에 비유하면 쉽습니다</h2>
+<p class="lead" data-eid="s6e2">느끼고, 생각하고, 표정으로 보여 주고, 움직입니다</p>
+<div class="body">
+<div class="body6">
+<div class="b6" style="grid-area: sense;"><div class="ic"><i class="px" data-px="....####....|..##wwww##..|.#www##www#.|#www####www#|#www####www#|.#www##www#.|..##wwww##..|....####...." data-s="5"></i></div><div class="meta" data-eid="s6e3">감각기관</div><b data-eid="s6e4">Arduino Uno</b><small data-eid="s6e5">밝기와 공기 온습도를<br/>느낍니다</small></div>
+<div class="b6a" data-eid="s6e6" style="grid-area: a1;"><i>▶</i>USB</div>
+<div class="b6 pi" style="grid-area: pi;">
+<div class="head"><i class="px" data-px="...##.##....|..#gg#gg##..|.#gggggggg#.|#gg#gggg#gg#|#ggg#gg#ggg#|#gggggggggg#|.#gg#gg#gg#.|..########..|.....##....." data-s="4"></i><div class="meta" data-eid="s6e7">두뇌</div><b data-eid="s6e8">Raspberry Pi 5</b></div>
+<div class="row">
+<div class="in"><div class="ic"><i class="px" data-px=".#.#.#.#.|#########|.#lllll#.|##l###l##|.#l#g#l#.|##l###l##|.#lllll#.|#########|.#.#.#.#." data-s="4"></i></div><div class="meta" data-eid="s6e9">로봇 프로그램</div><b data-eid="s6e10">센서값 받기 · 바퀴 명령</b><small data-eid="s6e11">몸을 움직이게 합니다</small></div>
+<span data-eid="s6e12">⇄</span>
+<div class="in"><div class="ic"><i class="px" data-px="....#.......|....#rrrr...|....#rrr....|....#.......|..#######...|..#w#w#w#...|..#######...|..#w#w#w#...|..#######..." data-s="4"></i></div><div class="meta" data-eid="s6e13">지휘소</div><b data-eid="s6e14">FastAPI 서버</b><small data-eid="s6e15">값을 모아 상태를 정합니다</small></div>
+</div>
+</div>
+<div class="b6a" data-eid="s6e16" style="grid-area: a2;"><i>⇄</i>와이파이</div>
+<div class="b6" style="grid-area: face;"><div class="ic"><i class="px" data-px="############|#llllllllll#|#ll#llll#ll#|#llllllllll#|#l#llllll#l#|#ll######ll#|#llllllllll#|############|....####....|..########.." data-s="5"></i></div><div class="meta" data-eid="s6e17">얼굴과 리모컨</div><b data-eid="s6e18">웹 대시보드</b><small data-eid="s6e19">표정을 보여 주고<br/>조종 버튼을 받습니다</small></div>
+<div class="b6a" data-eid="s6e20" style="grid-area: a3;"><i>▼</i>I2C</div>
+<div class="b6 leg" style="grid-area: leg;"><div class="ic"><i class="px" data-px="..########..|..#gggggg#..|############|#gggggggggg#|############|.###....###.|#.#.#..#.#.#|.###....###." data-s="5"></i></div><div class="meta" data-eid="s6e21">다리</div><b data-eid="s6e22">Raspbot V2</b><small data-eid="s6e23">바퀴로 움직이고 앞 거리를 봅니다</small></div>
+<div class="b6lane up" style="grid-area: l1;"><b data-eid="s6e24">▲ 느끼면 → 표정으로</b><span data-eid="s6e25">센서 → 아두이노 → 라즈베리파이 → 웹 캐릭터</span></div>
+<div class="b6lane down" style="grid-area: l2;"><b data-eid="s6e26">▼ 누르면 → 움직임으로</b><span data-eid="s6e27">웹 버튼 → 지휘소 → 로봇 프로그램 → 바퀴</span></div>
+</div>
+</div>
+</section>
+<!-- 6. 하드웨어 -->
+<section class="slide" data-notes="하드웨어입니다. 라즈베리파이 5가 두뇌로 로봇 프로그램과 서버를 실행하고, 라즈봇 V2의 모터 네 개를 I2C로 제어합니다. 파이에는 아날로그 입력이 없어서 센서는 아두이노 우노에 모았습니다. 조도 센서는 빛의 양을, DHT11은 공기 온도와 습도를 잽니다. 앞 거리는 처음엔 우노의 HC-SR04로 쟀지만, 배선이 흔들리는 문제로 라즈봇 본체의 내장 초음파로 바꿨습니다(문제 해결에서 자세히)." data-sec="2" data-time="0:20">
+<div class="kicker" data-eid="s7e0">02 시스템 구성 · 하드웨어</div>
+<h2 data-eid="s7e1">화분 로봇을 이루는 부품들</h2>
+<div class="body">
+<table class="hw">
+<tr><th data-eid="s7e2">부품</th><th data-eid="s7e3">하는 일</th><th data-eid="s7e4">기준 · 비고</th></tr>
+<tr><td data-eid="s7e5">Raspberry Pi 5</td><td data-eid="s7e6">로봇 프로그램과 FastAPI 서버를 실행하는 중심 컴퓨터</td><td data-eid="s7e7">웹 대시보드도 여기서 제공</td></tr>
+<tr><td data-eid="s7e8">Raspbot V2</td><td data-eid="s7e9">4바퀴 이동. 확장 보드가 모터와 내장 초음파를 I2C로 제공</td><td data-eid="s7e10">최대 속도 0.5로 제한</td></tr>
+<tr><td data-eid="s7e11">Arduino Uno</td><td data-eid="s7e12">Pi에 없는 아날로그 입력 대신 센서를 읽어 USB로 전송</td><td data-eid="s7e13">0.1초마다 한 줄</td></tr>
+<tr><td data-eid="s7e14">LDR 조도 센서</td><td data-eid="s7e15">빛의 양</td><td data-eid="s7e16">60% 미만이면 "어두움"</td></tr>
+<tr><td data-eid="s7e17">DHT11</td><td data-eid="s7e18">공기 상대습도와 온도</td><td data-eid="s7e19">2초마다 측정 · 흙 수분 아님</td></tr>
+<tr><td data-eid="s7e20">내장 초음파</td><td data-eid="s7e21">앞 장애물까지의 거리</td><td data-eid="s7e22">20cm 미만이면 전진 차단</td></tr>
+</table>
+<div class="note-line" data-eid="s7e23">전방 감지는 Uno의 HC-SR04로 시작했다가, Raspbot 본체의 내장 초음파로 바꿨습니다</div>
+</div>
+</section>
+<!-- 8. ① 상태 판단 -->
+<section class="slide" data-notes="이제 핵심 기능 네 가지입니다. 첫째, 상태 판단입니다. 서버는 센서값과 기준값을 비교하는 규칙으로 표정 네 가지 중 하나를 고릅니다. AI 모델이 진단하는 방식은 아닙니다. 밝고 습도가 알맞으면 happy, 조도가 0.6보다 낮으면 sleepy, 습도 30% 미만이면 dry, 80% 초과면 humid. 빛을 가장 먼저 봅니다. 핵심 시나리오가 밝은 곳으로 옮기는 것이기 때문입니다. 조도 0.6은 실측(평소 70~85%, 가리면 대부분 60% 아래)으로 정했고, 습도 기준은 임시값이라 환경변수로 바꿀 수 있습니다. dry·humid는 서버 테스트로만 확인했고, 시연에서는 happy와 sleepy를 보여 드립니다." data-sec="3" data-time="0:50">
+<div class="kicker" data-eid="s8e0">03 핵심 기능 · ① 식물 상태 판단</div>
+<h2 data-eid="s8e1">센서값이 캐릭터의 표정이 됩니다</h2>
+<p class="lead" data-eid="s8e2" style="margin-bottom: 8px;">센서값을 기준값과 비교하는 규칙 기반 판단입니다 (학습된 AI 모델이 진단하는 방식이 아님)</p>
+<div class="body">
+<div class="moods4">
+<div class="mood">
+<div class="screen"><img alt="" class="scene" src="assets/bg/room-day.png"/><div class="bubble" data-eid="s8e3">기분 좋아요</div><img alt="" class="pet hop" src="assets/chars/basil-grown-happy.png" style="width: 110px;"/></div>
+<h3 class="good" data-eid="s8e4">happy</h3><p data-eid="s8e5">밝고 습도가 알맞을 때<br/>"빛이 충분해요! 기분 좋아요"</p>
+</div>
+<div class="mood">
+<div class="screen"><img alt="" class="scene" src="assets/bg/room-night.png"/><div class="bubble" data-eid="s8e6">졸려요…</div><img alt="" class="pet" src="assets/chars/basil-adult.png" style="width: 100px;"/><div class="zzz" data-eid="s8e7">Z</div></div>
+<h3 data-eid="s8e8" style="color: var(--calm);">sleepy</h3><p data-eid="s8e9">조도 0.6 미만일 때<br/>"너무 어두워요… 졸려요"</p>
+</div>
+<div class="mood">
+<div class="screen"><img alt="" class="scene" src="assets/bg/room-day.png"/><div class="bubble" data-eid="s8e10">목말라요…</div><img alt="" class="pet" src="assets/chars/basil-grown-sad.png" style="width: 110px;"/></div>
+<h3 class="warn" data-eid="s8e11">dry</h3><p data-eid="s8e12">습도 30% 미만일 때<br/>"공기가 너무 건조해요… 목말라요"</p>
+</div>
+<div class="mood">
+<div class="screen"><img alt="" class="scene" src="assets/bg/room-day.png"/><div class="bubble" data-eid="s8e13">눅눅해요…</div><img alt="" class="pet" src="assets/chars/basil-grown-sad.png" style="width: 110px;"/></div>
+<h3 class="warn" data-eid="s8e14">humid</h3><p data-eid="s8e15">습도 80% 초과일 때<br/>"너무 눅눅해요… 바람이 필요해요"</p>
+</div>
+</div>
+<div class="rules2">
+<div data-eid="s8e16"><b>빛이 먼저</b>어두우면 습도와 관계없이 sleepy. 밝은 곳으로 옮기는 것이 핵심 시나리오이기 때문입니다.</div>
+<div data-eid="s8e17"><b>현장에서 조정</b>조도 0.6은 실측으로 정했고, 습도 기준은 임시값. 코드 수정 없이 환경변수로 바꿉니다.</div>
+</div>
+</div>
+</section>
+<!-- 9. ② 웹 대시보드 (한 장으로 요약) -->
+<section class="slide" data-notes="제가 만든 웹 대시보드입니다. 필요한 걸 한 화면에 모았습니다. A 맨 위에 연결 상태와 비상 정지, B 캐릭터는 센서값에 따라 표정과 말풍선이 바뀌고 식물 12종이 씨앗부터 자랍니다. C 센서 카드는 밝기·습도·앞 거리를 숫자와 그래프로 보여 주고, D 조종 패드는 누르는 동안만 움직이고, E는 옮기기 전과 후를 비교하고, F는 로봇 없이 브라우저에서 해 보는 체험 모드입니다. 실제로 어떻게 움직이는지 바로 영상으로 보겠습니다. ※ 밝기 막대의 빨간 선(30%)은 화면 표시일 뿐, 실제 판단 기준은 60%. 물어보면 그렇게 답하기." data-sec="3" data-time="0:40">
+<div class="kicker" data-eid="s9e0">03 핵심 기능 · ② 웹 대시보드</div>
+<div class="dash">
+<div>
+<h2 data-eid="s9e1" style="font-size: 30px; margin-bottom: 18px;">한 화면에서<br/>보고, 돌보고,<br/>조종합니다</h2>
+<div class="legend">
+<div><span class="badge" data-eid="s9e2">A</span><span data-eid="s9e3">연결 상태 · 비상 정지</span></div>
+<div><span class="badge" data-eid="s9e4">B</span><span data-eid="s9e5">캐릭터 표정 · 12종 성장<small>돌봄 인터랙션은 추가 기능</small></span></div>
+<div><span class="badge" data-eid="s9e6">C</span><span data-eid="s9e7">센서 카드<small>밝기 · 습도 · 앞 거리</small></span></div>
+<div><span class="badge" data-eid="s9e8">D</span><span data-eid="s9e9">원격 조종<small>누르는 동안만 이동</small></span></div>
+<div><span class="badge" data-eid="s9e10">E</span><span data-eid="s9e11">이동 전후 비교<small>옮기기 전 · 후 밝기 · 습도</small></span></div>
+<div><span class="badge" data-eid="s9e12">F</span><span data-eid="s9e13">체험 모드 지도<small>로봇 없이 미리 해 보기</small></span></div>
+</div>
+</div>
+<div class="pic">
+<img alt="대시보드 전체 화면" class="shot" src="assets/shots/dashboard.png"/>
+<span class="badge" data-eid="s9e14" style="left: 72%; top: 1%;">A</span>
+<span class="badge" data-eid="s9e15" style="left: 9%; top: 9%;">B</span>
+<span class="badge" data-eid="s9e16" style="left: 37%; top: 9%;">C</span>
+<span class="badge" data-eid="s9e17" style="left: 36.5%; top: 29%;">D</span>
+<span class="badge" data-eid="s9e18" style="left: 63%; top: 29%;">E</span>
+<span class="badge" data-eid="s9e19" style="left: 62.5%; top: 46%;">F</span>
+</div>
+</div>
+</section>
+<!-- 12. 시연 영상 (1) -->
+<section class="slide" data-notes="방금 본 대시보드가 실제로 어떻게 반응하는지 영상으로 보겠습니다. 왼쪽이 로봇, 오른쪽이 웹 화면입니다. (K 재생) 지금 밝기가 82%입니다. 조도 센서를 손으로 가리면 (⏸) 밝기가 30~40%대로 떨어지고, 캐릭터가 '너무 어두워요, 졸려요'로 바뀌면서 배경도 밤이 됩니다. (재생) 손을 떼면 다시 낮으로 돌아옵니다. 숫자만 있었다면 지나쳤을 텐데, 캐릭터가 졸고 있으면 한눈에 보이죠. (영상 28초 · 소리 없음)" data-sec="3" data-time="0:40">
+<div class="kicker" data-eid="s10e0">03 핵심 기능 · ② 웹 대시보드 › 시연 영상 (1) · 센서와 캐릭터</div>
+<h2 data-eid="s10e1">가리면 졸리고, 떼면 다시 행복해요</h2>
+<div class="body">
+<div class="demo">
+<div class="media" data-kind="video" data-src="videos/video1.mp4" style="height: 480px;">
+<div class="ph"><span class="play">▶</span><b>시연 영상 (1) 자리</b>LDR을 가렸다 떼는 장면<br/>videos 폴더에 video1.mp4 로 넣으면 여기서 재생됩니다</div>
+</div>
+<div class="side">
+<h3 data-eid="s10e2">영상에서 볼 장면</h3>
+<div class="step" data-eid="s10e3"><span class="badge">1</span>실제 센서 수치 · 밝기 82%</div>
+<div class="step" data-eid="s10e4"><span class="badge">2</span>조도 센서를 손으로 가림 → 30~40%대, "졸려요" + 밤 배경</div>
+<div class="step" data-eid="s10e5"><span class="badge">3</span>손을 떼면 다시 낮 배경으로</div>
+<p class="muted" data-eid="s10e6">왼쪽 로봇 · 오른쪽 웹 화면<br/>클릭 또는 K 키로 재생 · 멈춤</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 14. 시연 영상 (2) -->
+<section class="slide" data-notes="이번에는 대시보드로 실제 라즈봇을 조종하는 영상입니다. (K 재생) 자동차 가속 페달처럼 버튼을 누르고 있는 동안에만 움직이고, 손을 떼면 멈춥니다. 움직이는 동안 오른쪽 위 앞 거리 값도 계속 바뀌죠. 촬영한 복도가 어두워서 캐릭터는 계속 졸려 하는데, 실제로는 이렇게 화분을 밝은 자리로 옮겨 주는 게 목표입니다. ※ 영상에서 밝기가 좋아지는 장면은 없으니 '밝아졌다'고 말하지 않기. (영상 32초 · 소리 없음)" data-sec="3" data-time="0:50">
+<div class="kicker" data-eid="s11e0">03 핵심 기능 · ② 웹 대시보드 › 시연 영상 (2) · 원격 조종</div>
+<h2 data-eid="s11e1">웹 버튼으로 라즈봇을 움직입니다</h2>
+<div class="body">
+<div class="demo">
+<div class="media" data-kind="video" data-src="videos/video2.mp4" style="height: 480px;">
+<div class="ph"><span class="play">▶</span><b>시연 영상 (2) 자리</b>웹으로 라즈봇을 조종하는 장면<br/>videos 폴더에 video2.mp4 로 넣으면 여기서 재생됩니다</div>
+</div>
+<div class="side">
+<h3 data-eid="s11e2">영상에서 볼 장면</h3>
+<div class="step" data-eid="s11e3"><span class="badge">1</span>전진 · 회전 버튼을 누르는 동안만 이동</div>
+<div class="step" data-eid="s11e4"><span class="badge">2</span>버튼을 떼면 정지</div>
+<div class="step" data-eid="s11e5"><span class="badge">3</span>움직이는 동안 앞 거리 값이 계속 바뀜</div>
+<p class="muted" data-eid="s11e6">촬영 장소가 어두워 밝기 55~58% · 계속 "졸려요" 상태입니다</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 15. ③ 햇빛과 물 -->
+<section class="slide" data-notes="발표 주제는 '온도·습도에 따라 햇빛과 물 제공'이었습니다. 햇빛: 어두우면 캐릭터가 졸리다고 말하고, 사용자가 웹 버튼을 누르는 동안 로봇이 움직여 밝은 곳으로 옮깁니다. 옮기기 전·후 조도와 습도를 비교해 실제로 나아졌는지 확인합니다. 물: 공기 습도가 30% 아래로 떨어지면 캐릭터가 목마르다고 표현해 사용자가 물을 주게 합니다. 자동 급수는 향후 과제. 온도는 센서와 아두이노 코드까지만 준비했고, 서버와 웹 연결은 이번 범위에서 빼 두었습니다." data-sec="3" data-time="0:40">
+<div class="kicker" data-eid="s12e0">03 핵심 기능 · ③ 햇빛과 물 (주제의 구현 범위)</div>
+<h2 data-eid="s12e1">햇빛과 물, 이렇게 챙겨 줍니다</h2>
+<div class="body">
+<div class="topic" data-eid="s12e2">발표 주제: "온도·습도에 따라 햇빛과 물 제공" → 저희가 구현한 범위</div>
+<div class="sunwater">
+<div class="card">
+<div class="icon" data-eid="s12e3">🌞</div><h3 data-eid="s12e4">햇빛 · 로봇이 옮겨 줍니다</h3>
+<ul><li data-eid="s12e5">어두우면 캐릭터가 "졸려요"</li><li data-eid="s12e6">웹 버튼을 누르는 동안 로봇이 이동</li><li data-eid="s12e7">이동 전·후 조도·습도를 비교해 효과 확인</li></ul>
+<span class="state" data-eid="s12e8">원격 조종 · 이동 전후 비교 구현</span>
+</div>
+<div class="card">
+<div class="icon" data-eid="s12e9">💧</div><h3 data-eid="s12e10">물 · 캐릭터가 알려 줍니다</h3>
+<ul><li data-eid="s12e11">공기 습도가 30% 아래로 떨어지면</li><li data-eid="s12e12">캐릭터가 "목말라요"라고 표현</li><li data-eid="s12e13">사용자가 보고 물을 줍니다</li></ul>
+<span class="state part" data-eid="s12e14">알림까지 구현 · 자동 급수는 향후 과제</span>
+</div>
+</div>
+<div class="note-line" data-eid="s12e15">온도: 센서(DHT11)와 Arduino 코드까지 준비했고, 서버 · 웹 연결은 이번 범위에서 빼 두었습니다(다음 단계)</div>
+</div>
+</section>
+<!-- 16. ④ 원격 조종과 안전 -->
+<section class="slide" data-notes="화분을 싣고 움직이니 가장 신경 쓴 건 안전입니다. 규칙 세 가지. 첫째, 누르는 동안만: 웹이 0.2초마다 '계속 가'를 보내고 명령 하나로는 0.4초만 움직이고, 손을 떼면 정지, 멈춰 있어도 정지 명령을 다시 보냅니다. 둘째, 앞 20cm 안이거나 거리를 모르면 전진 거부, 후진·회전은 가능. 셋째, 비상 정지가 가장 먼저, 해제 전까지 이동 거부. 바퀴를 띄운 상태와 짧은 바닥 주행으로 실제 확인했고, 통신 끊김 정지는 자동 테스트까지만. 그래서 시연 땐 항상 전원 스위치 옆에 한 명. ※ '0.4초 안에 멈춘다'고 말하지 않기." data-sec="3" data-time="0:45">
+<div class="kicker" data-eid="s13e0">03 핵심 기능 · ④ 원격 조종과 안전</div>
+<h2 data-eid="s13e1">누르는 동안만 움직이고, 위험하면 멈춥니다</h2>
+<div class="body">
+<div class="rules">
+<div class="card"><span class="n" data-eid="s13e2">규칙 1</span><h3 data-eid="s13e3">누르는 동안만</h3><ul><li data-eid="s13e4">0.2초마다 "계속 가" 신호</li><li data-eid="s13e5">명령 하나로 0.4초만 이동</li><li data-eid="s13e6">손을 떼면 정지</li><li data-eid="s13e7">멈춰 있어도 정지 재전송</li></ul></div>
+<div class="card"><span class="n" data-eid="s13e8">규칙 2</span><h3 data-eid="s13e9">모르면 막힘</h3><ul><li data-eid="s13e10">20cm 안에 물체 → 전진 거부</li><li data-eid="s13e11">거리를 모름 → 전진 거부</li><li data-eid="s13e12">후진 · 회전은 가능</li></ul></div>
+<div class="card"><span class="n" data-eid="s13e13">규칙 3</span><h3 data-eid="s13e14">비상 정지 우선</h3><ul><li data-eid="s13e15">다른 어떤 명령보다 먼저</li><li data-eid="s13e16">해제 전까지 이동 명령 거부</li><li data-eid="s13e17">화면 버튼 또는 Esc</li></ul></div>
+</div>
+<div class="testcond">
+<span class="chip" data-eid="s13e18">바퀴를 띄운 상태로 첫 테스트</span><span class="chip" data-eid="s13e19">최대 속도 0.5 제한, 저속부터</span><span class="chip" data-eid="s13e20">전원 스위치 옆에 항상 대기</span>
+</div>
+<div class="note-line" data-eid="s13e21">0.4초는 명령 하나로 움직이는 시간이지, 바퀴가 반드시 0.4초 안에 멈춘다는 뜻이 아닙니다<br/>통신이 끊겼을 때의 자동 정지는 코드와 자동 테스트로만 확인했습니다</div>
+</div>
+</section>
+<!-- 17. 시연 영상 (3) -->
+<section class="slide" data-notes="안전 기능 영상입니다. (K 재생) 장애물 쪽으로 전진하면, 앞 17cm에서 전진 버튼이 빨갛게 바뀌고 '장애물이 있어서 전진하지 않아요'라는 알림이 뜹니다. 기준은 20cm인데, 감지한 뒤 조금 더 가서 멈춘 겁니다. 뒤로는 갈 수 있고, 다시 다가가면 또 막힙니다. (⏸ 비상 정지 장면) 비상 정지를 누르면 조종 패드가 잠기고 '비상 정지 중'이 뜹니다. 오른쪽 위 '정지 해제'를 눌러야 다시 움직입니다. 여기까지가 저희가 만든 기능입니다. 이제 비전공자 네 명이 이걸 어떻게 계획하고 만들었는지 말씀드리겠습니다. (영상 26초 · 소리 없음)" data-sec="3" data-time="0:50">
+<div class="kicker" data-eid="s14e0">03 핵심 기능 · ④ 원격 조종과 안전 › 시연 영상 (3) · 자동 정지</div>
+<h2 data-eid="s14e1">위험하면 스스로 멈춥니다</h2>
+<div class="body">
+<div class="demo">
+<div class="media" data-kind="video" data-src="videos/video3.mp4" style="height: 480px;">
+<div class="ph"><span class="play">▶</span><b>시연 영상 (3) 자리</b>장애물 앞 자동 정지 · 비상 정지 장면<br/>videos 폴더에 video3.mp4 로 넣으면 여기서 재생됩니다</div>
+</div>
+<div class="side">
+<h3 data-eid="s14e2">영상에서 볼 장면</h3>
+<div class="step" data-eid="s14e3"><span class="badge">1</span>앞 17cm에서 전진 막힘 + "전진하지 않아요" 알림</div>
+<div class="step" data-eid="s14e4"><span class="badge">2</span>후진은 가능 · 다시 다가가면 또 막힘</div>
+<div class="step" data-eid="s14e5"><span class="badge">3</span>비상 정지 → 패드 잠김 → "정지 해제"로 복구</div>
+<p class="muted" data-eid="s14e6">기준은 20cm · 감지 후 조금 더 가서 멈춥니다</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 7. 협업 ① 비전공자 팀의 시작 -->
+<section class="slide" data-notes="저희 팀 네 명은 모두 비전공자입니다. 그래서 처음부터 크게 만들지 않고, 작게 시작해 하나씩 붙이는 방법을 택했습니다. 첫날은 프로젝트에 들어가기 전에 팀원 취미 소개 웹사이트로 브랜치와 PR을 먼저 연습했습니다. 첫 목표도 표정 2개와 버튼 1개로 작게 잡았다가, 다음 날 '발표 때 꼭 동작해야 하는 것' 8개로 정했고, AI 대화 같은 어려운 기능은 추가 기능으로 미뤘습니다. 그리고 주고받을 데이터 형식과 API를 먼저 문서로 약속해서, 각자 따로 만들어도 맞물리게 했습니다. 센서와 모터가 없어도 개발할 수 있게 가짜 장치, Mock으로 먼저 만들고 실물은 확인한 뒤에 붙였습니다. 모르는 부분은 AI 도구의 도움을 받았지만, 가짜 장치 테스트만 통과한 것은 완료로 치지 않았습니다." data-sec="4" data-time="0:40">
+<div class="kicker" data-eid="s15e0">04 협업 과정 · 비전공자 팀의 시작</div>
+<h2 data-eid="s15e1">비전공자 4명, 작게 시작해 하나씩 붙였습니다</h2>
+<p class="lead" data-eid="s15e2">처음부터 크게 만들지 않고, 연습 → 범위 → 약속 → 가짜 장치 순서로 준비했습니다</p>
+<div class="body">
+<div class="idea4 start">
+<div class="card"><span class="step" data-eid="s15e3">10/28</span><h3 data-eid="s15e4">Git부터 연습</h3><p data-eid="s15e5">프로젝트 전에 팀 취미 소개 웹사이트로 브랜치 · PR을 먼저 연습</p></div>
+<div class="arrow" data-eid="s15e6">▶</div>
+<div class="card"><span class="step" data-eid="s15e7">10/28 → 10/29</span><h3 data-eid="s15e8">범위를 작게</h3><p data-eid="s15e9">표정 2개 + 버튼 1개에서 시작해 "꼭 동작할 것" 8개로 확정<br/><span class="muted">AI 대화는 추가 기능으로</span></p></div>
+<div class="arrow" data-eid="s15e10">▶</div>
+<div class="card"><span class="step" data-eid="s15e11">10/29</span><h3 data-eid="s15e12">약속부터</h3><p data-eid="s15e13">주고받을 데이터 형식과 API를 먼저 문서로 정해, 따로 만들어도 맞물리게</p></div>
+<div class="arrow" data-eid="s15e14">▶</div>
+<div class="card"><span class="step" data-eid="s15e15">10/28 ~</span><h3 data-eid="s15e16">가짜 장치로 먼저</h3><p data-eid="s15e17">센서 · 모터 없이도 Mock(가짜 장치)으로 개발 · 테스트, 실물은 확인 후 적용</p></div>
+</div>
+<div class="learn" data-eid="s15e18"><b>원칙</b>AI 도구(Claude Code · ChatGPT)의 도움을 받되, 가짜 장치 테스트만 통과한 것은 "완료"로 치지 않았습니다</div>
+</div>
+</section>
+<!-- 7-2. 협업 ② 역할과 규칙 -->
+<section class="slide" data-notes="역할은 네 영역으로 나눴습니다. 우지현 팀장이 운영과 GitHub 관리, 센서·로봇과 하드웨어 통합을, 제가 웹 대시보드와 발표를, 김주연 님이 서버와 상태 판단, Pi 데이터 수신과 통합, 발표 자료 초안을, 김서연 님이 문서화와 QA, 발표 자료를 맡았습니다. 함께 개발한 방식은 네 가지입니다. 먼저 해야 할 작업 38개를 GitHub에 등록하고 담당자와 일정을 정했습니다. 각자 맡은 기능을 개발하면서 진행 상황을 공유했고, 완료할 때는 실제로 작동하는지 확인해 미완료 작업과 구분했습니다. 마지막으로 개발한 코드를 확인한 뒤 하나의 프로젝트로 합쳤습니다. 센서, 서버, 화면이 서로 이어져 있어서, 실물이 준비되기 전에는 가상 장치로 먼저 연결해 봤습니다. ※ 커밋 수로 비교하지 않기. (참고: 작업 38개는 10/29에 Issue로 한 번에 등록했고 GitHub 보드에서 담당자·마감일을 관리했습니다. 각자 브랜치에서 개발해 PR로 올렸고, 병합은 팀장이 확인한 뒤 했습니다. 이어진 작업 순서는 센서 출력(우지현) → Pi 수신·서버(김주연) → 화면·조종 버튼(신효섭)이었습니다)" data-sec="4" data-time="0:35">
+<div class="kicker" data-eid="s16e0">04 협업 과정 · 역할과 규칙</div>
+<h2 data-eid="s16e1">역할을 나누고, 함께 개발했습니다</h2>
+<div class="body" style="word-break: keep-all;">
+<div class="team4">
+<div class="card"><div class="name" data-eid="s16e2">우지현<span>팀장</span></div><p data-eid="s16e3">운영 · 일정 · GitHub 관리<br/>센서 · 로봇 구현<br/>하드웨어 통합 · 실기기 검증</p></div>
+<div class="card"><div class="name" data-eid="s16e4">신효섭</div><p data-eid="s16e5">웹 대시보드<br/>캐릭터 · 원격 조종 UI<br/>최종 발표</p></div>
+<div class="card"><div class="name" data-eid="s16e6">김주연</div><p data-eid="s16e7">FastAPI 서버 · 상태 판단<br/>Pi 데이터 수신 · 통합<br/>발표 자료 초안</p></div>
+<div class="card"><div class="name" data-eid="s16e8">김서연</div><p data-eid="s16e9">문서화 · QA<br/>발표 자료<br/>시연 자료</p></div>
+</div>
+<div class="rules4">
+<div class="card"><h3 data-eid="s16e10">① GitHub로 작업 관리</h3><p data-eid="s16e11">해야 할 작업 38개를 등록하고 담당자와 일정을 정했습니다.</p></div>
+<div class="card"><h3 data-eid="s16e12">② 담당자별 개발</h3><p data-eid="s16e13">각자 맡은 기능을 개발하면서 진행 상황을 공유했습니다.</p></div>
+<div class="card"><h3 data-eid="s16e14">③ 완료 기준 확인</h3><p data-eid="s16e15">기능이 작동하는지 확인하고 미완료 작업도 구분했습니다.</p></div>
+<div class="card"><h3 data-eid="s16e16">④ 코드 검토와 통합</h3><p data-eid="s16e17">개발한 코드를 확인한 뒤 하나의 프로젝트로 합쳤습니다.</p></div>
+</div>
+<div class="flows" style="margin-top: 16px;"><div data-eid="s16e18"><b>함께 연결</b>센서 · 서버 · 화면이 서로 이어져 있어, 실물이 준비되기 전에는 가상 장치로 먼저 연결해 확인했습니다</div></div>
+</div>
+</section>
+<!-- 7-3. 협업 ③ 일정: 계획 vs 실제 -->
+<section class="slide" data-notes="6일 일정입니다. 위가 계획, 아래가 실제입니다. 10월 30일까지 각자 기능을 만들고, 31일에 합치기 시작해서, 11월 2일에 실물 통합을 마치는 계획이었습니다. 가장 중요한 날은 10월 31일 오프라인 미팅이었습니다. 아두이노 센서의 실제 측정값을 서버와 웹 대시보드에 연결했고, 실제 밝기와 습도 값에 따라 캐릭터 상태가 표시되는 것을 확인했습니다. 로봇 조종은 가상 모터로 웹에서 명령이 가는 흐름을 점검했고, 와이파이가 없는 곳에서도 휴대폰 핫스팟으로 라즈베리파이에 접속되는 것을 확인했습니다. 그럼 이 과정에서 어떤 문제가 있었고 어떻게 풀었는지 보겠습니다. (참고: 실제 모터는 10/31 오전에 바퀴를 띄우고 한 바퀴씩 돌려 번호를 확정했고, 웹으로 실제 로봇을 조종한 시험은 11/2에 했습니다. 점검 기록 14:20~15:10, 14:50 측정값 밝기 0.911·습도 69%·거리 50.7cm, 캐릭터 happy. 모터·센서 작업 일부는 마감(10/30~31)보다 늦은 11/2에 완료 처리했고, 통신이 끊겼을 때 멈추는 시험은 실물로 하지 못해 '검토 중'으로 남겼습니다)" data-sec="4" data-time="0:30">
+<div class="kicker" data-eid="s17e0">04 협업 과정 · 6일 일정</div>
+<h2 data-eid="s17e1">6일 일정, 계획대로 되지 않은 것도 있었습니다</h2>
+<div class="body" style="word-break: keep-all;">
+<div class="plan">
+<div class="lab"></div><div class="h" data-eid="s17e2">10/28</div><div class="h" data-eid="s17e3">10/29</div><div class="h" data-eid="s17e4">10/30</div><div class="h" data-eid="s17e5">10/31</div><div class="h" data-eid="s17e6">11/1</div><div class="h" data-eid="s17e7">11/2</div><div class="h" data-eid="s17e8">11/3</div>
+<div class="lab" data-eid="s17e9">계획</div>
+<div data-eid="s17e10">프로젝트 시작</div>
+<div data-eid="s17e11">공통 약속 · 가상 장치 준비</div>
+<div data-eid="s17e12">개별 기능 완료</div>
+<div data-eid="s17e13">가상 통합 완료 · 실물 연결 시작</div>
+<div data-eid="s17e14">실물 통합 · 점검</div>
+<div data-eid="s17e15">실물 통합 완료 · 코드 확정</div>
+<div data-eid="s17e16">최종 발표</div>
+<div class="lab" data-eid="s17e17">실제</div>
+<div class="real" data-eid="s17e18">Git 연습 · 뼈대 구성</div>
+<div class="real" data-eid="s17e19">역할 확정 · 작업 38개 등록</div>
+<div class="real" data-eid="s17e20">센서 · 서버 · 화면 · 가상 연결</div>
+<div class="real hot" data-eid="s17e21">오프라인 미팅 · 실제 센서 → 웹 확인</div>
+<div class="real" data-eid="s17e22">센서 · 모터 코드 합치기</div>
+<div class="real late" data-eid="s17e23">실제 로봇 조종 · 센서 교체 · 정지 개선</div>
+<div class="real hot" data-eid="s17e24">최종 발표</div>
+</div>
+<div class="meet" style="margin-top: 18px;">
+<div class="card" style="padding: 12px 16px;">
+<h3 data-eid="s17e25" style="font-size: 20px; margin-bottom: 6px;">10/31 오프라인 통합 미팅 (14:00~16:00)</h3>
+<ul class="checks">
+<li class="ok" data-eid="s17e26" style="font-size: 16px;">Arduino 센서의 실제 측정값을 서버 · 웹 대시보드에 연결</li>
+<li class="ok" data-eid="s17e27" style="font-size: 16px;">실제 조도 · 습도 값에 따른 캐릭터 상태 표시 확인</li>
+<li class="ok" data-eid="s17e28" style="font-size: 16px;">가상 모터 모드로 웹 조종 연결 흐름 점검</li>
+<li class="ok" data-eid="s17e33" style="font-size: 16px;">휴대폰 핫스팟으로 Raspberry Pi 접속 확인</li>
+</ul>
+</div>
+<div class="card" style="padding: 12px 16px; background: var(--lcd);">
+<h3 data-eid="s17e30" style="font-size: 20px; margin-bottom: 6px;">미팅에서 확인한 통합 결과</h3>
+<p data-eid="s17e31" style="font-size: 16px;">센서 → Raspberry Pi → 서버 → 웹 화면까지 실제 데이터가 이어졌습니다</p>
+<p class="muted" data-eid="s17e29" style="font-size: 15px; margin-top: 6px;">그날 기록: 밝기 0.911 · 습도 69% · 거리 50.7cm → 캐릭터 "기분 좋아요"</p>
+<p data-eid="s17e32" style="font-size: 16px; margin-top: 6px;">남은 과제: 실제 모터 연결과 안전 기능 시험</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 문제 해결 A 팀 개발 과정 -->
+<section class="slide" data-notes="문제 해결은 네 가지로 나눠 말씀드리겠습니다. 먼저 서로 다른 작업을 하나로 연결하는 과정입니다. 첫째, 두 사람이 고친 코드가 같은 곳에서 충돌했습니다. 바뀐 내용을 비교해 하나로 합치고, 로봇에서 시험한 뒤 11월 1일에 합쳤습니다. 둘째, 미팅 장소에 와이파이가 없어서, 전날 휴대폰 핫스팟으로 연결을 미리 점검했고 미팅 당일 팀원 PC로 접속에 성공했습니다. 셋째, 로봇 컴퓨터로 코드를 옮기기가 어려워서, 프로젝트 파일을 묶어 복사하고 버전마다 따로 보관해 되돌릴 수 있게 했습니다. 이렇게 막힌 곳과 해결법을 서로 공유했습니다. (참고: 충돌은 Pi 데이터 수신 코드(김주연, PR #48)와 모터 코드(우지현, PR #52)가 같은 파일 robot/__main__.py를 고쳐서 생겼고, 10/31 통합용 브랜치에서 먼저 합쳐 Pi에서 시험한 뒤 11/1 둘 다 main에 병합했습니다. 핫스팟은 10/30에 미리 시험했고, 핫스팟에서는 raspberry.local 이름이 안 돼 휴대폰의 연결된 기기 목록에서 Pi 주소를 확인했습니다. 저장소가 비공개라 Pi에서 바로 받을 수 없어 PC에서 git archive로 묶어 scp로 복사했고, 버전마다 새 폴더에 두었습니다. 처음 쓰는 터미널이라 Pi용 명령을 Windows 창에 붙여 넣거나 한글 키보드 상태로 로그인이 안 되는 실수도 있었고, 명령을 한 줄 형식으로 통일하고 개발일지에 기록했습니다)" data-sec="5" data-time="0:35">
+<div class="kicker" data-eid="s18e0">05 문제 해결 · A 팀 개발 과정</div>
+<h2 data-eid="s18e1">서로 다른 작업을 하나로 연결하는 과정</h2>
+<div class="body" style="word-break: keep-all;">
+<table class="hw prob">
+<tr><th data-eid="s18e2">문제</th><th data-eid="s18e3">어떻게 했나</th><th data-eid="s18e4">결과</th></tr>
+<tr><td data-eid="s18e5">① 코드 충돌 · 서로 다른 사람이 수정한 코드가 충돌</td><td data-eid="s18e6">변경 사항을 비교해 하나로 통합</td><td data-eid="s18e7">로봇에서 시험 후 11/1 합침</td></tr>
+<tr><td data-eid="s18e8">② 네트워크 · 작업 공간에 Wi-Fi가 없었음</td><td data-eid="s18e9">휴대폰 핫스팟으로 연결해 전날 사전 점검</td><td data-eid="s18e10">10/31 팀원 PC로 접속 성공</td></tr>
+<tr><td data-eid="s18e11">③ 코드 배포 · 로봇 컴퓨터로 코드 옮기기가 어려웠음</td><td data-eid="s18e12">프로젝트 파일을 묶어 안전하게 복사</td><td data-eid="s18e13">버전마다 보관해 되돌릴 수 있음</td></tr>
+</table>
+<div class="learn" data-eid="s18e17"><b>정리</b>서로 다른 환경에서 개발한 기능을 하나로 연결하면서, 문제의 원인과 해결 방법을 공유했습니다</div>
+</div>
+</section>
+<!-- 문제 해결 B 하드웨어 통합 -->
+<section class="slide" data-notes="다음은 하드웨어입니다. 실제 로봇을 움직이자 예상하지 못한 문제가 나타났습니다. 첫째, 센서와 컴퓨터 사이의 데이터 연결을 새로 만들어야 했습니다. 라즈베리파이는 조도 센서 같은 아날로그 센서를 바로 읽지 못해서, 아두이노가 센서를 읽어 USB로 보내게 했습니다. 둘째, 가만히 있을 때는 되던 거리 센서가 로봇이 움직이면 끊겼습니다. 셋째, 버튼을 놓아도 바퀴가 계속 움직이는 경우가 있었습니다. 코드에서는 잘 되던 기능도 실제 장비에서는 다르게 움직였습니다. 둘째와 셋째는 다음 두 장에서 자세히 보겠습니다. (참고: 아두이노는 0.1초마다 한 줄씩 보내고, 30초 동안 301줄을 오류 없이 받았습니다. 라즈봇 공식 문서의 모터 번호가 실물과 달라 10/31에 바퀴를 띄우고 하나씩 돌려 네 개 번호를 확정했고, 정지 명령에 바로 멈추는 것도 확인했습니다. 센서를 추가하자 데이터 모양을 확인하는 자동 검사 4개가 실패해 실제 출력에 맞게 고쳤습니다. 11/2 오전에는 잘 되던 거리 센서 값이 전부 비어 나와 배선을 다시 연결했고, 15초 동안 151번 모두 정상으로 돌아왔지만 로봇이 움직이자 다시 끊겼습니다)" data-sec="5" data-time="0:25">
+<div class="kicker" data-eid="s19e0">05 문제 해결 · B 하드웨어 통합</div>
+<h2 data-eid="s19e1">실제 로봇을 움직이자 예상하지 못한 문제가 나타났습니다</h2>
+<div class="body" style="word-break: keep-all;">
+<div class="three">
+<div class="card"><h3 data-eid="s19e2">① 센서 연결</h3><p data-eid="s19e3">센서와 컴퓨터 사이의 데이터 연결을 구성해야 했습니다.</p><p class="muted" data-eid="s19e4" style="margin-top: 10px;">Arduino가 읽어 USB로 전달</p></div>
+<div class="card"><h3 data-eid="s19e5">② 거리 측정</h3><p data-eid="s19e6">가만히 있을 때는 되던 센서가 움직이면 끊겼습니다.</p><p class="muted" data-eid="s19e7" style="margin-top: 10px;">→ C 거리 센서 교체</p></div>
+<div class="card"><h3 data-eid="s19e8">③ 모터 정지</h3><p data-eid="s19e9">버튼을 놓아도 바퀴가 계속 움직이는 경우가 있었습니다.</p><p class="muted" data-eid="s19e10" style="margin-top: 10px;">→ D 바퀴 정지 개선</p></div>
+</div>
+<div class="note-line" data-eid="s19e14">코드에서 정상적으로 작동한 기능도 실제 장비에서는 예상과 다르게 움직였습니다.</div>
+</div>
+</section>
+<!-- 18. 문제 해결 ① 센서 교체 -->
+<section class="slide" data-notes="문제 C는 거리 센서입니다. 아까 안전 영상에서 장애물 앞에서 전진을 막던 바로 그 기능입니다. 처음 쓴 거리 센서는 선을 꽂아서 연결하는 방식이라, 로봇이 움직이면 연결이 불안정했습니다. 배선을 다시 연결하고 얼마나 안정적으로 재는지 확인해 봤지만, 움직이면 계속 끊겼습니다. 그래서 로봇 본체에 고정된 내장 센서로 바꿨고, 거리를 모를 때는 전진하지 않게 했습니다. 센서를 바꾼 뒤에는 실제로 바닥을 달리다가 장애물을 감지해 멈추는 것까지 확인했습니다. 기존 센서는 남겨 언제든 되돌릴 수 있습니다. 배운 점: 책상 위에서 되는 것과 움직이는 로봇에서 안정적인 것은 다른 문제였습니다. (참고: 다시 꽂은 뒤 60cm 거리에서 41번 중 6번만 값이 나왔습니다. 이것은 60cm 조건의 기록이고 이동 중 성공률이 아닙니다. 바퀴가 돌 때는 값이 계속 끊겼습니다. 149/149는 교체 전에 멈춘 상태에서 15초 동안 한 비교 측정이고(통신 오류 0건, 같은 시간 기존 센서 148/150), 주행 검증이 아닙니다. 주행 시험은 34cm에서 출발해 20cm 안쪽을 감지하자 멈췄고, 약 5cm 더 밀린 뒤 섰습니다. 앞이 약 4m 넘게 비면 거리를 몰라 전진하지 않습니다)" data-sec="5" data-time="0:40">
+<div class="kicker" data-eid="s20e0">05 문제 해결 · C 거리 측정</div>
+<h2 data-eid="s20e1">움직일 때 끊기던 센서를 교체했습니다</h2>
+<div class="body" style="word-break: keep-all;">
+<div class="flow4">
+<div class="card"><div class="tag" data-eid="s20e2">문제</div><h3 data-eid="s20e3">값이 끊긴다</h3><p data-eid="s20e4">처음 사용한 거리 센서는 로봇이 움직이면 연결이 불안정했습니다.</p></div>
+<div class="arrow" data-eid="s20e5">▶</div>
+<div class="card"><div class="tag" data-eid="s20e6">조사</div><h3 data-eid="s20e7">다시 연결해 확인</h3><p data-eid="s20e8">배선을 다시 연결하고, 얼마나 안정적으로 측정되는지 확인했습니다.</p></div>
+<div class="arrow" data-eid="s20e9">▶</div>
+<div class="card"><div class="tag" data-eid="s20e10">개선</div><h3 data-eid="s20e11">본체 고정 센서로</h3><p data-eid="s20e12">로봇 본체에 고정된 내장 센서로 변경했습니다.<br/>거리를 모르면 전진하지 않습니다.</p></div>
+<div class="arrow" data-eid="s20e13">▶</div>
+<div class="card"><div class="tag" data-eid="s20e14">검증</div><h3 data-eid="s20e15">주행으로 확인</h3><p data-eid="s20e16">센서를 교체한 뒤 실제 주행 중 장애물을 감지해 멈추는 동작을 확인했습니다.</p></div>
+</div>
+<div class="note-line" data-eid="s20e17" style="font-size: 17px; padding: 9px 14px;">기존 센서의 코드와 배선은 남겨 두어 언제든 되돌릴 수 있습니다</div>
+<div class="learn" data-eid="s20e18"><b>배운 점</b>센서가 책상 위에서 작동하는 것과, 움직이는 로봇에서 안정적으로 작동하는 것은 다른 문제였습니다</div>
+</div>
+</section>
+<!-- 19. 문제 해결 ② 정지 재전송 -->
+<section class="slide" data-notes="문제 D. 웹에서 버튼을 놓았는데도 바퀴가 계속 움직이는 경우가 가끔 있었습니다. 기록을 보니 프로그램은 정지 명령을 모두 보내고 있었습니다. 그래서 모터 보드가 그중 일부를 놓친 것으로 보고, 멈춘 상태에서도 정지 명령을 반복해서 보내도록 바꿨습니다. 고친 뒤 실제 로봇으로 4번 시험했고, 모두 정상적으로 멈췄습니다. 다만 정확한 원인은 아직 확정하지 못했고, 4번의 시험으로 모든 상황에서 멈춘다고 장담할 수는 없습니다. 그래서 시연 때는 비상 정지와 전원 스위치를 항상 준비합니다. 배운 점: 프로그램이 명령을 보냈다는 것과 하드웨어가 실제로 멈춘다는 것은 다릅니다. (참고: 11/2 오전 회전 버튼을 놓은 뒤 생긴 현상입니다. 정지 명령 146회 전송은 로그 확인 결과이며, 그때 명령 만료 0회·통신 오류 0건이었습니다. 보드가 정지를 놓쳤다는 것은 추정이고 근본 원인은 확정되지 않았습니다. 정지를 일부러 놓치는 가짜 보드로 만든 시험 14개 중 고치기 전 코드는 10개가 실패했고, 고친 뒤에는 모두 통과했습니다. 실제 시험 4회는 좌회전 2번, 우회전 2번이며 그중 1번은 회전 중 비상 정지로 멈췄습니다)" data-sec="5" data-time="0:40">
+<div class="kicker" data-eid="s21e0">05 문제 해결 · D 멈추지 않는 바퀴</div>
+<h2 data-eid="s21e1">버튼을 놓아도 멈추지 않던 바퀴를 개선했습니다</h2>
+<div class="body" style="word-break: keep-all;">
+<div class="flow4">
+<div class="card"><div class="tag" data-eid="s21e2">문제</div><h3 data-eid="s21e3">멈추지 않는 바퀴</h3><p data-eid="s21e4">웹에서 버튼을 놓았는데도 바퀴가 계속 움직이는 경우가 있었습니다.</p></div>
+<div class="arrow" data-eid="s21e5">▶</div>
+<div class="card"><div class="tag" data-eid="s21e6">조사</div><h3 data-eid="s21e7">기록 확인</h3><p data-eid="s21e8">정지 명령은 모두 보내졌지만, 실제 모터에 반영되지 않은 것으로 보였습니다.</p></div>
+<div class="arrow" data-eid="s21e9">▶</div>
+<div class="card"><div class="tag" data-eid="s21e10">개선</div><h3 data-eid="s21e11">정지 반복 전송</h3><p data-eid="s21e12">정지 상태에서도 정지 명령을 반복해서 보내도록 변경했습니다.</p></div>
+<div class="arrow" data-eid="s21e13">▶</div>
+<div class="card"><div class="tag" data-eid="s21e14">검증</div><h3 data-eid="s21e15">실기기 시험</h3><p data-eid="s21e16">수정 후 제한된 실기기 시험 4회에서 정상적으로 멈추는 것을 확인했습니다.</p></div>
+</div>
+<div class="note-line" data-eid="s21e17">주의: 정확한 원인은 아직 확정하지 못했고, 4회 시험으로 모든 상황의 정지를 보장할 수는 없습니다 · 시연 때는 비상 정지와 전원 스위치를 준비합니다</div>
+<div class="learn" data-eid="s21e18"><b>배운 점</b>프로그램이 명령을 보냈다는 것과, 실제 하드웨어가 안전하게 동작한다는 것은 다릅니다</div>
+</div>
+</section>
+<!-- 20. 테스트와 결과 -->
+<section class="slide" data-notes="그래서 최종적으로 무엇을 만들고 확인했는지 정리하겠습니다. 첫째, 실제 밝기와 습도 데이터를 웹 대시보드에 표시하고, 그 값에 따라 캐릭터 표정이 바뀝니다. 둘째, 웹에서 실제 로봇을 조종했고, 장애물 앞 정지와 비상 정지 같은 안전 기능 일부를 실제 기기에서 확인했습니다. 셋째, 아직 실기기에서 충분히 확인하지 못한 기능도 남아 있습니다. 통신이 끊겼을 때 자동 정지, 돌봄 인터랙션의 로봇 반응, 이동 전후 비교 화면입니다. 자동 테스트는 로봇 142개, 서버 64개, 통합 9개 모두 통과했습니다. (참고: 11/2 최종 코드 39bd29b 기준, 라즈베리파이에서 실행. 지금 main f912173은 이후 문서만 추가되어 코드와 테스트는 같습니다. dry·humid 표정은 서버 테스트로만 확인했습니다)" data-sec="6" data-time="0:30">
+<div class="kicker" data-eid="s22e0">06 결과와 한계 · 최종 결과</div>
+<h2 data-eid="s22e1">구현하고 확인한 것, 아직 남은 것</h2>
+<div class="body" style="word-break: keep-all;">
+<div class="row">
+<div class="card" style="flex: 1.4;">
+<h3 data-eid="s22e2">실제 기기에서 확인</h3>
+<ul class="checks">
+<li class="ok" data-eid="s22e3">실제 밝기 · 습도 데이터를 웹 대시보드에 표시</li>
+<li class="ok" data-eid="s22e4">센서값에 따라 캐릭터 표정 변경</li>
+<li class="ok" data-eid="s22e5">웹에서 실제 로봇 원격 조종</li>
+<li class="ok" data-eid="s22e6">안전 기능 일부 확인: 장애물 앞 정지 · 비상 정지</li>
+<li class="ok" data-eid="s22e7">정지 반복 전송 후 시험 4회 정상 정지</li>
+</ul>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
+<div class="card">
+<h3 data-eid="s22e14" style="font-size: 21px;">실기기 검증이 부족한 것</h3>
+<ul class="checks"><li class="no" data-eid="s22e15" style="font-size: 17px;">통신이 끊겼을 때 자동 정지</li><li class="no" data-eid="s22e16" style="font-size: 17px;">돌봄 인터랙션의 로봇 반응</li><li class="no" data-eid="s22e17" style="font-size: 17px;">dry · humid 표정 (서버 테스트만)</li><li class="no" data-eid="s22e19" style="font-size: 17px;">이동 전후 비교 화면 (실제 이동으로는 미검증)</li></ul>
+</div>
+<div class="tests" style="grid-template-columns: repeat(3, 1fr); margin: 0;">
+<div class="lcd" style="padding: 12px 4px;"><div class="big" data-eid="s22e8" style="font-size: 44px;">142</div><p data-eid="s22e9" style="font-size: 15px;">로봇 테스트</p></div>
+<div class="lcd" style="padding: 12px 4px;"><div class="big" data-eid="s22e10" style="font-size: 44px;">64</div><p data-eid="s22e11" style="font-size: 15px;">서버 테스트</p></div>
+<div class="lcd" style="padding: 12px 4px;"><div class="big" data-eid="s22e12" style="font-size: 44px;">9</div><p data-eid="s22e13" style="font-size: 15px;">통합 테스트</p></div>
+</div>
+</div>
+</div>
+<p class="muted" data-eid="s22e18" style="font-size: 15px; margin: 12px 0 0;">자동 테스트 수치는 11/2 최종 코드 기준이며, 라즈베리파이에서 모두 통과했습니다 · 추가 개발 과제는 다음 장에서</p>
+</div>
+</section>
+<!-- 21. 한계와 향후 -->
+<section class="slide" data-notes="남은 한계입니다. 물은 자동 급수가 아니라 공기 습도에 따른 알림이고, 햇빛은 자율주행이 아니라 사용자가 원격 조종으로 옮깁니다. 토양 수분 센서가 없어서 흙이 마른 정도는 직접 판단하지 못하고, 온도는 센서와 아두이노 코드까지만 준비했고 서버와 웹에는 연결하지 않았습니다. 또 앞이 약 4m 넘게 비면 거리를 몰라 전진을 막고, 일부 안전 기능은 실기기 검증이 충분하지 않습니다. 다음 단계는 토양 수분 센서와 펌프 자동 급수, 스스로 밝은 곳을 찾는 자율주행, 넓은 공간에서도 안전한 거리 판단, 온도 표시입니다. 이 단계들을 다 이루면 어떤 모습일지, 짧은 영상으로 보여 드리겠습니다. (→ 누르면 영상 시작)" data-sec="6" data-time="0:40">
+<div class="kicker" data-eid="s23e0">06 결과와 한계 · 남은 과제</div>
+<h2 data-eid="s23e1">구현한 것과 아직 아닌 것을 구분합니다</h2>
+<div class="body">
+<div class="two">
+<div class="card">
+<h3 data-eid="s23e2">현재 한계</h3>
+<ul>
+<li data-eid="s23e3">물: 자동 급수가 아니라 공기 습도에 따른 알림</li>
+<li data-eid="s23e4">햇빛: 자율주행이 아니라 사용자의 원격 조종</li>
+<li data-eid="s23e5">토양 수분 센서가 없어 흙이 마른 정도를 직접 판단 못 함</li>
+<li data-eid="s23e6">온도: 센서와 Arduino 코드까지만, 서버 · 웹 연결은 이번 범위에서 제외</li>
+<li data-eid="s23e7">앞이 약 4m 넘게 비면 거리를 몰라 전진 차단</li>
+<li data-eid="s23e8">일부 안전 기능은 실기기 검증이 충분하지 않음</li>
+</ul>
+</div>
+<div class="card" style="background: var(--lcd);">
+<h3 data-eid="s23e9">다음 단계</h3>
+<ul>
+<li data-eid="s23e10">토양 수분 센서 + 펌프 자동 급수</li>
+<li data-eid="s23e11">스스로 밝은 곳을 찾는 자율주행</li>
+<li data-eid="s23e12">넓은 공간에서도 안전한 거리 판단</li>
+<li data-eid="s23e13">온도 표시 · 정지 문제 원인 규명</li>
+<li data-eid="s23e14">LCD 표정 · 카메라 인터랙션</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- 콘셉트 영상: 다음 단계를 모두 이루면 (장에 들어가면 소리와 함께 처음부터 재생) -->
+<section class="slide intro" data-notes="콘셉트 영상(11초) · 말하지 않고 기다리기. 끝나면: '스스로 햇빛을 찾아가고, 화면으로 표정을 짓는 화분. 저희가 PLANTCHI BOT으로 가고 싶은 모습입니다.' ※ 실제로 만든 로봇이 아니라 목표를 보여 주는 콘셉트 영상이라고 꼭 말하기. (R 처음부터 다시 · K 재생/멈춤)" data-sec="6" data-time="0:20">
+<div class="media" data-autoplay="" data-kind="video" data-src="videos/vision.mp4">
+<div class="ph"><span class="play">▶</span><b>콘셉트 영상 자리</b>videos 폴더에 vision.mp4 로 넣으면 여기서 재생됩니다</div>
+</div>
+<div class="vision-tag" data-eid="s24e0">콘셉트 영상 · 다음 단계를 모두 이룬 모습 (실제 구현 아님)</div>
+<div class="tap-hint">▶ R 키 또는 화면 클릭으로 영상 재생</div>
+</section>
+<!-- 22. Q&A -->
+<section class="slide" data-notes="정리하면 세 가지입니다. 첫째, 센서, 서버, 웹, 로봇을 연결해 식물 돌봄을 표현하는 시스템을 만들었습니다. 둘째, 개별 기능보다 실제 하드웨어와 소프트웨어를 통합하는 과정에서 많은 문제를 해결했습니다. 셋째, 구현한 기능과 아직 검증하지 못한 부분을 구분했고, 이를 바탕으로 다음 방향을 정리했습니다. 가장 크게 배운 건, 소프트웨어 테스트 통과만으로 물리적 장치의 동작까지 보장할 수는 없다는 점입니다. 말 못 하는 식물에게 표정과 다리를 달아 줬다고 기억해 주세요. 지금까지 6팀이었습니다. 감사합니다. 궁금한 점 편하게 질문해 주세요." data-sec="7" data-time="0:20">
+<div class="end">
+<div>
+<p class="qa" data-eid="s25e0">Q&amp;A</p>
+<p class="slogan" data-eid="s25e1">말 못 하는 식물에게<br/><span>표정</span>과 <span>다리</span>를</p>
+<ul class="checks card" style="max-width: 720px; padding: 14px 18px; font-size: 18px;">
+<li class="ok" data-eid="s25e2">센서, 서버, 웹, 로봇을 연결해 식물 돌봄을 표현하는 시스템을 만들었습니다</li>
+<li class="ok" data-eid="s25e3">실제 하드웨어와 소프트웨어를 통합하며 많은 문제를 해결했습니다</li>
+<li class="ok" data-eid="s25e4">구현한 것과 아직 검증하지 못한 것을 구분하고, 다음 방향을 정했습니다</li>
+</ul>
+<p data-eid="s25e5" style="font-size: 22px; margin-top: 22px;">궁금한 점을 편하게 질문해 주세요 · 감사합니다</p>
+</div>
+<div class="screen" style="height: 420px;">
+<img alt="" class="scene" src="assets/bg/room-day.png"/>
+<div class="bubble" data-eid="s25e6">질문 환영해요!</div>
+<img alt="" class="pet hop" src="assets/chars/basil-grown-happy.png" style="width: 240px;"/>
+</div>
+</div>
+</section>
+</div>
+<div id="notes"></div>
+
+<button id="edit-toggle" type="button" hidden>✎ 수정</button>
+<div id="edit-bar" hidden>
+  <div class="row"><span class="t">수정 모드</span><button id="edit-prev" type="button" aria-label="이전 장">◀</button><button id="edit-next" type="button" aria-label="다음 장">▶</button></div>
+  <div id="edit-msg" role="status"></div>
+  <label for="edit-notes">이 장의 발표자 메모 (N 키로 보는 내용)<textarea id="edit-notes"></textarea></label>
+  <div class="row"><span class="t"></span><button id="edit-cancel" type="button">취소</button><button id="edit-save" class="primary" type="button">저장</button></div>
+</div>
+
+<script>
+(() => {
+  const SECTIONS = ['기획', '시스템', '핵심 기능', '협업', '문제 해결', '결과', 'Q&A'];
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('.slide')];
+  const notes = document.getElementById('notes');
+  let cur = 0;
+
+  // 장마다 쪽 번호, 진행 막대, 목차 칸을 붙인다
+  slides.forEach((s, i) => {
+    const foot = document.createElement('div');
+    foot.className = 'foot';
+    foot.innerHTML = `<span>PLANTCHI BOT · Physical AI 기초 과정 6팀</span><span>${i + 1} / ${slides.length}</span>`;
+    const bar = document.createElement('div');
+    bar.className = 'progress';
+    bar.innerHTML = slides.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('');
+    s.append(foot, bar);
+    const sec = Number(s.dataset.sec);
+    if (sec > 0) {
+      const tabs = document.createElement('div');
+      tabs.className = 'secbar';
+      tabs.innerHTML = SECTIONS.map((name, j) => `<span class="${j + 1 === sec ? 'on' : ''}">${String(j + 1).padStart(2, '0')}${j + 1 === sec ? ' ' + name : ''}</span>`).join('');
+      s.append(tabs);
+    }
+  });
+
+  function fit() {
+    const k = Math.min(innerWidth / 1280, innerHeight / 720);
+    stage.style.transform = `translate(-50%, -50%) scale(${k})`;
+  }
+
+  // 도입 영상처럼 data-autoplay가 붙은 영상은 장에 들어가면 처음부터 소리와 함께 튼다
+  function playIntro(s) {
+    const box = s.querySelector('.media[data-autoplay]');
+    const v = box && box.querySelector('video');
+    if (!v) return;
+    s.classList.remove('needs-tap');
+    v.currentTime = 0;
+    v.play().catch(() => s.classList.add('needs-tap')); // 브라우저가 첫 클릭·키 입력 전에는 소리를 막는다
+  }
+
+  function show(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => s.classList.toggle('is-active', j === cur));
+    document.querySelectorAll('video').forEach((v) => v.pause());
+    const s = slides[cur];
+    notes.innerHTML = `<div class="t">${cur + 1}장 · ${s.dataset.time || ''}</div>${s.dataset.notes || ''}`;
+    history.replaceState(null, '', `#${cur + 1}`);
+    playIntro(s);
+  }
+
+  // 픽셀 아이콘: data-px의 문자 격자를 SVG 사각형으로 그린다
+  const PX = { '#': 'var(--ink)', g: 'var(--green)', l: 'var(--lcd-hi)', r: 'var(--red)', w: 'var(--card)' };
+  document.querySelectorAll('.px[data-px]').forEach((el) => {
+    const rows = el.dataset.px.split('|');
+    const sc = Number(el.dataset.s) || 4;
+    const w = rows[0].length, h = rows.length;
+    let rects = '';
+    rows.forEach((row, y) => [...row].forEach((c, x) => {
+      if (PX[c]) rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PX[c]}"/>`;
+    }));
+    el.innerHTML = `<svg width="${w * sc}" height="${h * sc}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+  });
+
+  // 사진·영상: 파일이 있으면 보여 주고, 없으면 자리 표시를 남긴다
+  document.querySelectorAll('.media[data-src]').forEach((box) => {
+    const el = document.createElement(box.dataset.kind === 'video' ? 'video' : 'img');
+    if (el.tagName === 'VIDEO') {
+      el.preload = 'metadata';
+      el.playsInline = true;
+      el.addEventListener('loadeddata', () => box.classList.add('is-loaded'));
+      el.addEventListener('click', () => (el.paused ? el.play() : el.pause()));
+      el.style.objectFit = 'contain';
+    } else {
+      el.addEventListener('load', () => box.classList.add('is-loaded'));
+    }
+    el.src = box.dataset.src;
+    box.prepend(el);
+  });
+
+  addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); show(cur + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); show(cur - 1); }
+    else if (k === 'Home') show(0);
+    else if (k === 'End') show(slides.length - 1);
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen();
+    } else if (k === 'n' || k === 'N') notes.classList.toggle('is-open');
+    else if (k === 'r' || k === 'R') playIntro(slides[cur]);
+    else if (k === 'k' || k === 'K') {
+      const v = slides[cur].querySelector('video');
+      if (v && v.closest('.media').classList.contains('is-loaded')) v.paused ? v.play() : v.pause();
+    }
+  });
+  document.addEventListener('fullscreenchange', () => document.body.classList.toggle('is-full', !!document.fullscreenElement));
+
+  // 화면 오른쪽 3분의 1을 누르면 다음, 왼쪽은 이전 (영상 위 클릭은 재생·멈춤)
+  stage.addEventListener('click', (e) => {
+    if (slides[cur].classList.contains('needs-tap')) { playIntro(slides[cur]); return; }
+    if (e.target.closest('video')) return;
+    show(e.clientX > innerWidth * 0.66 ? cur + 1 : e.clientX < innerWidth * 0.33 ? cur - 1 : cur);
+  });
+
+  addEventListener('resize', fit);
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+<script>
+// 수정 모드: 편집 권한이 있는 사람이 글자와 발표자 메모를 고치고, 이 페이지를 새 버전으로 저장한다
+(() => {
+  const SKELETON_HEAD = '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>\n';
+  const SKELETON_TAIL = '\n</body></html>';
+  const ALLOWED = new Set(['BR', 'B', 'STRONG', 'I', 'EM', 'SPAN', 'SMALL', 'SUB', 'SUP']);
+
+  const slides = [...document.querySelectorAll('section.slide')];
+  const bar = document.getElementById('edit-bar');
+  const btn = document.getElementById('edit-toggle');
+  const msg = document.getElementById('edit-msg');
+  const notesBox = document.getElementById('edit-notes');
+  const saveBtn = document.getElementById('edit-save');
+  let artifact = null;
+  let editing = false;
+  let readOnly = false;
+  let saving = false;
+  const notesEdits = {};
+
+  const current = () => Math.max(0, slides.findIndex((s) => s.classList.contains('is-active')));
+  const say = (text) => { msg.textContent = text; };
+
+  // 붙여 넣거나 엔터로 생긴 태그를 정리해 글자 꾸밈(굵게, 색 span, 줄바꿈)만 남긴다
+  function clean(node) {
+    [...node.childNodes].forEach((c) => {
+      if (c.nodeType === 3) return;
+      if (c.nodeType !== 1) { c.remove(); return; }
+      clean(c);
+      if (c.tagName === 'DIV' || c.tagName === 'P') {
+        c.before(document.createElement('br'));
+        c.replaceWith(...c.childNodes);
+      } else if (!ALLOWED.has(c.tagName)) {
+        c.replaceWith(...c.childNodes);
+      } else {
+        [...c.attributes].forEach((a) => { if (a.name !== 'class') c.removeAttribute(a.name); });
+      }
+    });
+    return node;
+  }
+
+  function syncNotesBox() {
+    const i = current();
+    notesBox.value = notesEdits[i] ?? slides[i].dataset.notes ?? '';
+    notesBox.dataset.slide = String(i);
+  }
+
+  function setEditing(on) {
+    editing = on;
+    document.body.classList.toggle('is-editing', on);
+    bar.hidden = !on;
+    document.querySelectorAll('[data-eid]').forEach((el) => {
+      if (on) el.setAttribute('contenteditable', 'true'); else el.removeAttribute('contenteditable');
+    });
+    if (on) {
+      syncNotesBox();
+      say(readOnly ? '이 링크는 보기 전용이라 고쳐도 저장되지 않아요.' : '글자를 클릭해서 고치세요. 다 고쳤으면 저장을 누르세요.');
+    }
+  }
+
+  notesBox.addEventListener('input', () => {
+    const i = Number(notesBox.dataset.slide);
+    notesEdits[i] = notesBox.value;
+    slides[i].dataset.notes = notesBox.value;
+  });
+
+  // 장이 바뀌면 메모 칸도 그 장의 메모로 바꾼다
+  new MutationObserver(() => { if (editing) syncNotesBox(); })
+    .observe(document.getElementById('stage'), { attributes: true, subtree: true, attributeFilter: ['class'] });
+
+  // 수정 중에는 글자를 클릭해도 장이 넘어가지 않고, 입력한 키가 발표 단축키로 쓰이지 않게 한다
+  addEventListener('keydown', (e) => {
+    const t = e.target;
+    if (t && (t.isContentEditable || t === notesBox)) e.stopPropagation();
+    else if (editing && e.key === 'Escape') setEditing(false);
+  }, true);
+  addEventListener('click', (e) => {
+    if (editing && e.target.closest('section.slide')) e.stopPropagation();
+  }, true);
+  document.addEventListener('paste', (e) => {
+    if (!e.target.isContentEditable) return;
+    e.preventDefault();
+    document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));
+  });
+  addEventListener('keydown', (e) => {
+    if ((e.key === 'e' || e.key === 'E') && !editing && artifact && !e.target.isContentEditable) setEditing(true);
+  });
+
+  btn.addEventListener('click', () => setEditing(!editing));
+  document.getElementById('edit-cancel').addEventListener('click', () => location.reload());
+  document.getElementById('edit-prev').addEventListener('click', () => dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' })));
+  document.getElementById('edit-next').addEventListener('click', () => dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' })));
+
+  // 원본 소스에 고친 글자를 넣어 새 index.html을 만든다 (화면의 DOM을 그대로 저장하지 않는다)
+  function buildPage() {
+    const src = JSON.parse(document.getElementById('deck-src').textContent);
+    const doc = new DOMParser().parseFromString('<!doctype html><html><head></head><body>' + src + '</body></html>', 'text/html');
+    document.querySelectorAll('[data-eid]').forEach((live) => {
+      const target = doc.querySelector(`[data-eid="${live.dataset.eid}"]`);
+      if (!target) return;
+      const copy = clean(live.cloneNode(true));
+      if (target.innerHTML !== copy.innerHTML) target.innerHTML = copy.innerHTML;
+    });
+    const docSlides = doc.querySelectorAll('section.slide');
+    Object.entries(notesEdits).forEach(([i, v]) => { if (docSlides[i]) docSlides[i].setAttribute('data-notes', v); });
+    const content = doc.body.innerHTML;
+    const srcBlock = '<script type="application/json" id="deck-src">' + JSON.stringify(content).replace(/</g, '\\u003c') + '<\/script>\n';
+    return SKELETON_HEAD + content + srcBlock + SKELETON_TAIL;
+  }
+
+  saveBtn.addEventListener('click', async () => {
+    if (saving || readOnly || !artifact) return;
+    saving = true;
+    saveBtn.disabled = true;
+    say('저장하는 중…');
+    try {
+      await artifact.publish({ 'index.html': { content: buildPage(), contentType: 'text/html' } });
+      say('저장했어요. 링크를 여는 모든 사람에게 이 내용이 보여요.');
+      setTimeout(() => location.reload(), 1200);
+    } catch (err) {
+      const code = err && err.code;
+      if (code === 'conflict') say('다른 사람이 먼저 저장했어요. 새 버전으로 다시 불러온 뒤 고쳐 주세요.');
+      else if (['not_writer', 'not_granted', 'consent_required', 'capability_disabled', 'not_declared'].includes(code)) {
+        readOnly = true;
+        say('이 링크는 보기 전용이에요. 편집 권한을 받아야 저장할 수 있어요.');
+      } else if (code === 'rate_limited') say('저장이 너무 잦아요. 잠시 뒤에 다시 눌러 주세요.');
+      else say('저장하지 못했어요. 잠시 뒤에 다시 눌러 주세요.');
+    } finally {
+      saving = false;
+      saveBtn.disabled = readOnly;
+    }
+  });
+
+  if (window.claude && claude.use) {
+    claude.use('artifact').then((a) => {
+      if (!a) return;
+      artifact = a;
+      btn.hidden = false;
+    });
+  }
+})();
+</script>
+<script type="application/json" id="deck-src">"\u003ctitle>PLANTCHI BOT 발표 수정본\u003c/title>\n\u003cstyle>\n@font-face {\n  font-family: \"Galmuri11\";\n  src: url(\"assets/fonts/Galmuri11.woff2\") format(\"woff2\");\n  font-display: block;\n}\n:root {\n  --bg: #fdf3e7;\n  --card: #fffaf0;\n  --line: #d9cdb2;\n  --ink: #26301c;\n  --muted: #6b7259;\n  --lcd: #c9d8a8;\n  --lcd-hi: #dbe7bd;\n  --green: #2f7d4f;\n  --red: #c8423b;\n  --amber-soft: #fbeccb;\n  --calm: #4b5fa8;\n  --px: 4px;\n  --pixel-border: 0 calc(-1 * var(--px)) 0 0 var(--ink), 0 var(--px) 0 0 var(--ink),\n    calc(-1 * var(--px)) 0 0 0 var(--ink), var(--px) 0 0 0 var(--ink);\n  --drop: 0 calc(var(--px) * 3) 0 0 rgba(38, 48, 28, 0.18);\n  --lcd-bg: linear-gradient(rgba(38, 48, 28, 0.06) 1px, transparent 1px) 0 0 / 4px 4px,\n    linear-gradient(90deg, rgba(38, 48, 28, 0.06) 1px, transparent 1px) 0 0 / 4px 4px, var(--lcd);\n}\n* { box-sizing: border-box; }\nhtml, body { margin: 0; height: 100%; overflow: hidden; }\nbody {\n  background: #1d2416;\n  color: var(--ink);\n  font-family: \"Galmuri11\", \"Malgun Gothic\", sans-serif;\n  font-synthesis: none;\n}\n\n/* ------------------------------------------------ 무대: 1280×720 고정, 화면에 맞춰 확대 */\n#stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; }\n.slide {\n  position: absolute; inset: 0;\n  padding: 48px 64px 60px;\n  background: radial-gradient(#f3dfc6 1.5px, transparent 1.6px) 0 0 / 18px 18px, var(--bg);\n  display: none; flex-direction: column;\n}\n.slide.is-active { display: flex; }\n.slide h2 { margin: 0 0 6px; font-size: 38px; font-weight: normal; line-height: 1.25; }\n.kicker { font-size: 17px; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; }\n.lead { font-size: 22px; color: var(--muted); margin: 0 0 22px; }\n.body { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }\n.foot {\n  position: absolute; left: 64px; right: 64px; bottom: 20px;\n  display: flex; justify-content: space-between; font-size: 14px; color: var(--muted);\n}\n\n/* 오른쪽 위 목차 칸: 지금 어느 부분인지 */\n.secbar { position: absolute; right: 64px; top: 22px; display: flex; gap: 6px; }\n.secbar span { font-size: 13px; padding: 3px 7px; color: var(--muted); box-shadow: 0 0 0 2px var(--line); background: var(--card); }\n.secbar span.on { background: var(--ink); color: var(--lcd); box-shadow: 0 0 0 2px var(--ink); }\n\n/* ------------------------------------------------ 공통 블록 */\n.card { background: var(--card); box-shadow: var(--pixel-border), var(--drop); padding: 20px 22px; margin: var(--px); }\n.card h3 { margin: 0 0 10px; font-size: 24px; font-weight: normal; }\n.card p, .card li { font-size: 19px; line-height: 1.55; margin: 0; }\n.card ul { margin: 0; padding-left: 0; list-style: none; }\n.card li { padding-left: 22px; position: relative; }\n.card li::before { content: \"▸\"; position: absolute; left: 0; color: var(--green); }\n.lcd { background: var(--lcd-bg); box-shadow: var(--pixel-border), var(--drop); margin: var(--px); }\n.chip { display: inline-block; padding: 5px 11px; margin: 4px; font-size: 17px; background: var(--lcd); box-shadow: 0 0 0 3px var(--ink); }\n.muted { color: var(--muted); }\n.good { color: var(--green); }\n.warn { color: var(--red); }\n.row { display: flex; gap: 24px; align-items: stretch; }\n.row > * { flex: 1; }\n.note-line { margin-top: 18px; font-size: 19px; padding: 11px 16px; background: var(--amber-soft); box-shadow: 0 0 0 3px var(--ink); }\n.checks { list-style: none; padding-left: 0; margin: 0; }\n.checks li { font-size: 20px; padding-left: 26px; position: relative; line-height: 1.6; }\n.checks li::before { position: absolute; left: 0; }\n.checks li.ok::before { content: \"✔\"; color: var(--green); }\n.checks li.no::before { content: \"△\"; color: var(--red); }\n.shot { display: block; max-width: 100%; box-shadow: var(--pixel-border), var(--drop); margin: var(--px); background: var(--card); }\n.badge { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; background: var(--ink); color: var(--lcd); font-size: 18px; flex: none; }\n\n/* 사진·영상 자리 */\n.media { position: relative; overflow: hidden; background: #e9e0cc; box-shadow: var(--pixel-border); margin: var(--px); }\n.media img, .media video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }\n.media .ph {\n  position: absolute; inset: 10px; border: 3px dashed var(--muted);\n  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;\n  font-size: 18px; color: var(--muted); text-align: center; padding: 12px;\n}\n.media .ph b { font-weight: normal; font-size: 24px; color: var(--ink); }\n.media .ph .play { font-size: 54px; color: var(--green); line-height: 1; }\n.media.is-loaded .ph { display: none; }\n.media:not(.is-loaded) img, .media:not(.is-loaded) video { visibility: hidden; }\n\n/* 캐릭터 화면(대시보드 축소판) */\n.screen { position: relative; overflow: hidden; box-shadow: var(--pixel-border), var(--drop); margin: var(--px); }\n.screen .scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }\n.screen .pet { position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%); image-rendering: pixelated; }\n.screen .bubble {\n  position: absolute; left: 50%; top: 8%; transform: translateX(-50%);\n  background: #fff; padding: 6px 12px; font-size: 18px; white-space: nowrap; box-shadow: 0 0 0 3px var(--ink);\n}\n.screen .zzz { position: absolute; right: 20%; top: 32%; font-size: 26px; color: #fff; animation: zzz 2.4s steps(3) infinite; }\n@keyframes zzz { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-20px); opacity: 0.2; } }\n/* 표지: 고전 다마고치 → PLANTCHI BOT 캐릭터로 계단식(8비트)으로 바뀌기를 반복 */\n.screen .classic {\n  position: absolute; inset: 0; z-index: 2; background: var(--ink);\n  display: flex; align-items: center; justify-content: center;\n  animation: classic-swap 9s steps(1) infinite;\n}\n.screen .classic img { height: 100%; width: auto; image-rendering: pixelated; }\n.screen .era {\n  position: absolute; left: 12px; bottom: 12px; z-index: 3; padding: 5px 10px; font-size: 16px;\n  background: var(--ink); color: var(--lcd); box-shadow: 0 0 0 3px var(--lcd);\n}\n.screen .era.old { animation: classic-swap 9s steps(1) infinite; }\n.screen .era.new { animation: classic-swap-in 9s steps(1) infinite; }\n@keyframes classic-swap {\n  0%, 32% { opacity: 1; }\n  34% { opacity: 0.8; } 36% { opacity: 0.6; } 38% { opacity: 0.4; } 40% { opacity: 0.2; }\n  42%, 82% { opacity: 0; }\n  84% { opacity: 0.2; } 86% { opacity: 0.4; } 88% { opacity: 0.6; } 90% { opacity: 0.8; }\n  92%, 100% { opacity: 1; }\n}\n@keyframes classic-swap-in {\n  0%, 32% { opacity: 0; }\n  42%, 82% { opacity: 1; }\n  92%, 100% { opacity: 0; }\n}\n@media (prefers-reduced-motion: reduce) {\n  .screen .classic, .screen .era.old { animation: none; opacity: 0; }\n  .screen .era.new { animation: none; opacity: 1; }\n}\n.hop { animation: hop 1.2s steps(2) infinite; }\n@keyframes hop { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-10px); } }\n\n/* ------------------------------------------------ 장별 */\n/* 1 표지 */\n.cover { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; height: 100%; }\n.cover .logo { font-size: 78px; line-height: 1; letter-spacing: 2px; margin: 0 0 14px; font-weight: normal; }\n.cover .logo span { color: var(--green); }\n.cover .tag { font-size: 22px; margin: 0 0 18px; color: var(--muted); }\n.cover .sub { font-size: 27px; margin: 0 0 34px; line-height: 1.45; }\n.cover .team { font-size: 20px; color: var(--muted); line-height: 1.7; }\n\n/* 2 목차 */\n.toc { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 40px; }\n.toc .it { display: flex; gap: 16px; align-items: center; padding: 10px 16px; background: var(--card); box-shadow: var(--pixel-border); margin: var(--px); }\n.toc .n { font-size: 30px; color: var(--green); width: 46px; }\n.toc b { font-weight: normal; font-size: 24px; display: block; }\n.toc small { font-size: 16px; color: var(--muted); }\n\n/* 3 문제 정의 */\n.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }\n.three .card { padding: 26px 22px; }\n.three .screen.mini { height: 150px; margin: 0 0 14px; box-shadow: 0 0 0 3px var(--ink); }\n.three .screen.mini .pet { width: 124px !important; bottom: 6%; }\n.three .photo { display: block; width: 100%; height: 240px; object-fit: cover; margin: 0 0 14px; box-shadow: 0 0 0 3px var(--ink); }\n\n/* 4 감지·표현·돌봄 */\n.flow3 { display: grid; grid-template-columns: 1fr 50px 1fr 50px 1fr; align-items: stretch; }\n.flow3 .arrow { display: flex; align-items: center; justify-content: center; font-size: 38px; color: var(--green); }\n.flow3 .icon { font-size: 48px; margin-bottom: 8px; }\n.flow3 h3 { font-size: 30px; }\n\n/* 4단계: 감지 → 판단 → 표현 → 행동 */\n.idea4 { display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr 40px 1fr; align-items: stretch; }\n.idea4 .arrow { display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--green); }\n.idea4 .card { padding: 26px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 210px; }\n.idea4 .step { display: inline-block; background: var(--ink); color: var(--lcd); padding: 3px 10px; font-size: 16px; margin-bottom: 10px; }\n.idea4 h3 { font-size: 30px; margin-bottom: 10px; }\n.idea4 p { font-size: 18px; line-height: 1.55; }\n.idea4 .screen.mini { height: 92px; margin: 0 0 12px; box-shadow: 0 0 0 3px var(--ink); }\n.idea4.compact .card { min-height: 165px; padding: 16px 14px; }\n.idea4.compact h3 { font-size: 26px; margin-bottom: 6px; }\n.numvs { display: grid; grid-template-columns: 1fr 50px 1fr; align-items: stretch; margin-bottom: 14px; }\n.numvs .arrow { display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--green); }\n.numvs small { display: block; font-size: 15px; color: var(--muted); margin-bottom: 6px; }\n.numvs .lcd { padding: 12px 18px; display: flex; flex-direction: column; justify-content: center; }\n.numvs .nums { display: flex; gap: 22px; font-size: 26px; }\n.numvs .chr { display: flex; gap: 16px; align-items: center; padding: 10px 16px; }\n.numvs .chr .screen { width: 120px; height: 80px; flex: none; margin: 0; box-shadow: 0 0 0 3px var(--ink); }\n.numvs .chr .pet { width: 64px; bottom: 4%; }\n.numvs .chr b { font-weight: normal; font-size: 19px; }\n.learn { margin-top: 12px; font-size: 19px; padding: 11px 16px; background: var(--lcd); box-shadow: 0 0 0 3px var(--ink); }\n.learn b { font-weight: normal; color: var(--green); margin-right: 8px; }\n\n/* 5 구조도 */\n.arch {\n  display: grid; grid-template-columns: 175px 52px 185px 118px 330px 66px 186px;\n  grid-template-rows: auto 64px auto; align-items: center; justify-content: center;\n}\n.node { background: var(--card); box-shadow: var(--pixel-border), var(--drop); padding: 14px 12px; text-align: center; margin: var(--px); }\n.node .role { font-size: 15px; color: var(--muted); }\n.node b { display: block; font-weight: normal; font-size: 22px; margin: 4px 0 6px; }\n.node small { font-size: 16px; line-height: 1.45; display: block; }\n.node.pi { background: var(--ink); color: var(--lcd); }\n.node.pi .role { color: var(--lcd-hi); }\n.node.pi .inner { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }\n.node.pi .inner span { background: var(--lcd); color: var(--ink); padding: 6px 8px; font-size: 16px; white-space: nowrap; }\n.link { text-align: center; font-size: 14px; color: var(--muted); line-height: 1.3; }\n.link .a { font-size: 32px; color: var(--green); line-height: 1; }\n.vlink { grid-column: 5; text-align: center; font-size: 16px; color: var(--muted); }\n.vlink .a { font-size: 32px; color: var(--green); }\n.flows { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }\n.flows div { font-size: 18px; padding: 10px 14px; background: var(--card); box-shadow: 0 0 0 3px var(--ink); }\n.flows b { font-weight: normal; color: var(--green); margin-right: 8px; }\n\n/* 5 구조도: 사람 비유 */\n.body6 {\n  display: grid; grid-template-columns: 250px 64px 1fr 64px 250px;\n  grid-template-rows: auto 52px auto; align-items: center;\n  grid-template-areas: \"sense a1 pi a2 face\" \"l1 l1 a3 l2 l2\" \"l1 l1 leg l2 l2\";\n}\n.body6 { word-break: keep-all; }\n.b6 { background: var(--card); box-shadow: var(--pixel-border), var(--drop); margin: var(--px); padding: 14px 12px 12px; text-align: center; }\n.b6 .ic { height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }\n.b6 .meta { font-size: 28px; line-height: 1.15; }\n.b6 b { display: block; font-weight: normal; font-size: 17px; color: var(--muted); margin: 4px 0 6px; }\n.b6 small { display: block; font-size: 16px; line-height: 1.4; }\n.b6.pi { background: var(--ink); color: var(--lcd); padding: 12px 14px 14px; }\n.b6.pi .head { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px; }\n.b6.pi .head .meta { color: var(--lcd-hi); }\n.b6.pi .head b { color: var(--lcd); margin: 0; }\n.b6.pi .row { display: grid; grid-template-columns: 1fr 26px 1fr; align-items: stretch; }\n.b6.pi .row > span { align-self: center; }\n.b6.pi .in { background: var(--lcd); color: var(--ink); padding: 10px 8px; }\n.b6.pi .in .ic { height: 40px; margin-bottom: 2px; }\n.b6.pi .in .meta { font-size: 21px; }\n.b6.pi .in b { font-size: 15px; margin: 2px 0 4px; }\n.b6.pi .in small { font-size: 14px; }\n.b6.pi .row > span { text-align: center; font-size: 20px; color: var(--lcd-hi); }\n.b6.leg { justify-self: center; width: 380px; display: grid; grid-template-columns: 76px 1fr; align-items: center; text-align: left; gap: 0 10px; }\n.b6.leg .ic { grid-row: span 3; margin: 0; }\n.b6.leg b, .b6.leg .meta { margin: 0; }\n.b6a { text-align: center; font-size: 14px; color: var(--muted); line-height: 1.3; }\n.b6a i { display: block; font-style: normal; font-size: 30px; color: var(--green); line-height: 1; }\n.b6lane { align-self: stretch; margin: 30px 8px 4px; padding: 12px 16px; box-shadow: 0 0 0 3px var(--ink); display: flex; flex-direction: column; justify-content: center; gap: 6px; }\n.b6lane b { font-weight: normal; font-size: 21px; }\n.b6lane span { font-size: 16px; line-height: 1.45; color: var(--muted); }\n.b6lane.up { background: var(--lcd); }\n.b6lane.up b { color: var(--green); }\n.b6lane.down { background: var(--card); }\n.b6lane.down b { color: var(--calm); }\n.px { display: block; image-rendering: pixelated; }\n\n/* 6 하드웨어 표 */\n.hw { width: 100%; border-collapse: collapse; background: var(--card); box-shadow: var(--pixel-border), var(--drop); }\n.hw th, .hw td { font-size: 18px; text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--line); vertical-align: top; }\n.hw th { background: var(--ink); color: var(--lcd); font-weight: normal; }\n.hw td:first-child { white-space: nowrap; }\n\n/* 7 팀·일정 */\n.team4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }\n.team4 .card { padding: 12px 14px; }\n.team4 .name { font-size: 21px; }\n.team4 .name span { font-size: 15px; color: var(--muted); margin-left: 6px; }\n.team4 p { font-size: 16px; margin-top: 4px; }\n.team4 .me { background: var(--lcd); }\n.timeline { display: grid; grid-template-columns: repeat(7, 1fr); margin: 16px 0 10px; position: relative; }\n.timeline::before { content: \"\"; position: absolute; left: 6%; right: 6%; top: 15px; height: 5px; background: var(--ink); }\n.tl { text-align: center; position: relative; padding: 0 4px; }\n.tl .dot { width: 24px; height: 24px; margin: 5px auto 8px; background: var(--card); box-shadow: 0 0 0 4px var(--ink); position: relative; }\n.tl.hot .dot { background: var(--green); }\n.tl .d { font-size: 19px; }\n.tl p { font-size: 15px; line-height: 1.4; margin: 4px 0 0; color: var(--muted); }\n.meet { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; align-items: stretch; }\n\n/* 협업: 시작 4단계, 규칙 4개, 계획 vs 실제 */\n.idea4.start .card { min-height: 230px; padding: 22px 14px; }\n.idea4.start h3 { font-size: 25px; }\n.idea4.start p { font-size: 17px; }\n.rules4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; }\n.rules4 .card { padding: 12px 14px; }\n.rules4 h3 { font-size: 19px; margin-bottom: 4px; color: var(--green); }\n.rules4 p { font-size: 16px; line-height: 1.5; }\n.plan { display: grid; grid-template-columns: 56px repeat(7, 1fr); gap: 8px; }\n.plan > div { font-size: 15px; line-height: 1.4; padding: 8px; background: var(--card); box-shadow: 0 0 0 2px var(--line); }\n.plan .h { background: var(--ink); color: var(--lcd); text-align: center; font-size: 17px; box-shadow: none; }\n.plan .lab { background: none; box-shadow: none; display: flex; align-items: center; font-size: 17px; color: var(--muted); padding: 0; }\n.plan .real { background: var(--lcd); box-shadow: 0 0 0 2px var(--ink); }\n.plan .hot { background: var(--green); color: #fff; }\n.plan .late { background: var(--amber-soft); }\n\n/* 문제 해결: 팀 개발 표, 하드웨어 통합 4칸 */\n.hw.prob th, .hw.prob td { font-size: 17px; padding: 9px 12px; line-height: 1.45; }\n.hw.prob td:first-child { white-space: normal; width: 38%; }\n.hw.prob td:last-child { color: var(--green); width: 22%; }\n.fix4 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }\n.fix4 .card { padding: 12px 16px; }\n.fix4 h3 { font-size: 20px; margin-bottom: 6px; }\n.fix4 p { font-size: 17px; line-height: 1.5; }\n.fix4 p b { font-weight: normal; color: var(--green); margin-right: 8px; }\n\n/* 8 상태 판단 */\n.moods4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }\n.mood { background: var(--card); box-shadow: var(--pixel-border), var(--drop); margin: var(--px); padding: 10px 10px 14px; }\n.mood .screen { height: 160px; margin: 0 0 10px; box-shadow: 0 0 0 3px var(--ink); }\n.mood .screen .bubble { font-size: 14px; padding: 4px 8px; top: 6%; }\n.mood h3 { margin: 0; font-size: 22px; font-weight: normal; }\n.mood p { margin: 4px 0 0; font-size: 15px; line-height: 1.5; }\n.rules2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }\n.rules2 div { font-size: 17px; line-height: 1.5; padding: 10px 14px; background: var(--card); box-shadow: 0 0 0 3px var(--ink); }\n.rules2 b { font-weight: normal; color: var(--green); display: block; font-size: 19px; }\n\n/* 9 대시보드 전체 */\n.dash { display: grid; grid-template-columns: 330px 1fr; gap: 26px; align-items: center; height: 100%; }\n.dash .legend { display: flex; flex-direction: column; gap: 10px; }\n.dash .legend div { display: flex; gap: 12px; align-items: center; font-size: 20px; }\n.dash .legend small { display: block; font-size: 15px; color: var(--muted); }\n.dash .pic { position: relative; justify-self: center; }\n.dash .pic img { height: 520px; }\n.dash .pic .badge { position: absolute; box-shadow: 0 0 0 3px #fff; }\n\n/* 10·13 캡처 + 설명 */\n.shots { display: flex; gap: 18px; align-items: flex-start; }\n.shots img { height: 380px; }\n.explain { display: flex; flex-direction: column; gap: 12px; flex: 1; }\n.explain .card { padding: 12px 16px; margin: var(--px); }\n.explain h3 { font-size: 20px; margin-bottom: 4px; }\n.explain p { font-size: 16px; }\n.explain .dev { background: var(--amber-soft); }\n\n/* 11 센서 카드 */\n.sensor-shot { display: block; margin: 0 auto 18px; width: 900px; }\n.sensor3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }\n.sensor3 .card { padding: 14px 16px; }\n.sensor3 h3 { font-size: 21px; }\n.sensor3 p { font-size: 16px; }\n\n/* 12·14·17 시연 영상 */\n.demo { display: grid; grid-template-columns: 1fr 330px; gap: 26px; height: 100%; }\n.demo .media { height: 100%; }\n.demo .side { display: flex; flex-direction: column; justify-content: center; gap: 12px; }\n.demo .side h3 { font-weight: normal; font-size: 22px; margin: 0 0 4px; }\n.demo .step { display: flex; gap: 10px; align-items: flex-start; font-size: 18px; line-height: 1.45; background: var(--card); box-shadow: 0 0 0 3px var(--ink); padding: 10px 12px; }\n.demo .step .badge { width: 26px; height: 26px; font-size: 15px; }\n.demo .side .muted { font-size: 15px; line-height: 1.5; }\n\n/* 15 햇빛과 물 */\n.sunwater { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }\n.sunwater .card { padding: 22px 24px; }\n.sunwater .icon { font-size: 46px; }\n.sunwater .state { margin-top: 14px; display: inline-block; font-size: 17px; padding: 5px 12px; background: var(--lcd); box-shadow: 0 0 0 3px var(--ink); }\n.sunwater .state.part { background: var(--amber-soft); }\n.topic { font-size: 20px; margin-bottom: 16px; padding: 10px 16px; background: var(--card); box-shadow: 0 0 0 3px var(--ink); }\n\n/* 16 안전 */\n.rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }\n.rules .card { padding: 20px 20px; }\n.rules .n { display: inline-block; background: var(--ink); color: var(--lcd); padding: 4px 12px; font-size: 18px; margin-bottom: 12px; }\n.rules h3 { font-size: 26px; }\n.testcond { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }\n\n/* 18 센서 교체 */\n.ba { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; }\n.ba .arrow { display: flex; align-items: center; justify-content: center; font-size: 42px; color: var(--green); }\n.ba .media { height: 150px; margin-bottom: 14px; }\n.bar { height: 28px; background: #e9e0cc; box-shadow: 0 0 0 3px var(--ink); margin: 10px 0 8px; position: relative; }\n.bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--green); }\n.bar.bad i { background: var(--red); }\n.ba .stat { font-size: 21px; }\n.ba .stat b { font-weight: normal; font-size: 38px; }\n\n/* 19 정지 재전송 */\n.flow4 { display: grid; grid-template-columns: 1fr 36px 1fr 36px 1fr 36px 1fr; align-items: stretch; }\n.flow4 .arrow { display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--green); }\n.flow4 .card { padding: 18px 16px; }\n.flow4 .tag { font-size: 15px; color: var(--muted); }\n.flow4 h3 { font-size: 23px; margin: 6px 0 10px; }\n.flow4 p { font-size: 17px; line-height: 1.55; }\n.flow4 .hl { font-size: 34px; color: var(--green); display: block; margin: 6px 0; }\n\n/* 20 테스트 */\n.tests { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }\n.tests .lcd { padding: 18px 10px; text-align: center; }\n.tests .big { font-size: 66px; line-height: 1; }\n.tests p { margin: 8px 0 0; font-size: 19px; }\n\n/* 21 한계 */\n.two { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }\n.two li { font-size: 19px; margin-bottom: 6px; }\n\n/* 22 마무리 */\n.end { display: grid; grid-template-columns: 1fr 400px; gap: 40px; align-items: center; height: 100%; }\n.end .qa { font-size: 90px; line-height: 1; margin: 0 0 10px; color: var(--green); }\n.end .slogan { font-size: 40px; line-height: 1.4; margin: 0 0 24px; }\n.end .slogan span { color: var(--green); }\n.end .checks li { font-size: 18px; }\n\n/* 도입 영상: 화면 전체에 꽉 차게, 장에 들어가면 처음부터 재생 */\n.slide.intro { padding: 0; background: #000; }\n.slide.intro .media { position: absolute; inset: 0; margin: 0; box-shadow: none; background: #000; }\n.slide.intro .media video { object-fit: contain; }\n.slide.intro .foot, .slide.intro .progress, .slide.intro .secbar { display: none; }\n.vision-tag {\n  position: absolute; left: 24px; top: 20px;\n  background: var(--ink); color: var(--lcd); padding: 8px 14px; font-size: 18px; box-shadow: 0 0 0 3px var(--lcd);\n}\n.tap-hint {\n  position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); display: none;\n  background: var(--ink); color: var(--lcd); padding: 10px 18px; font-size: 20px; box-shadow: 0 0 0 3px var(--lcd);\n}\n.slide.needs-tap .tap-hint { display: block; }\n\n/* ------------------------------------------------ 진행 표시·발표자 메모 */\n.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; display: flex; gap: 3px; padding: 0 3px; }\n.progress i { flex: 1; background: var(--line); }\n.progress i.on { background: var(--green); }\n#notes {\n  position: fixed; left: 0; right: 0; bottom: 0; max-height: 36vh; overflow: auto;\n  background: rgba(20, 26, 15, 0.94); color: #eef3dd; padding: 14px 22px 18px;\n  font-size: 17px; line-height: 1.65; display: none; z-index: 10;\n}\n#notes.is-open { display: block; }\n#notes .t { color: var(--lcd); margin-bottom: 4px; }\n#help { position: fixed; right: 12px; top: 8px; color: rgba(255, 255, 255, 0.45); font-size: 13px; z-index: 11; transition: opacity 0.4s; }\nbody.is-full #help { opacity: 0; }\n\n/* ------------------------------------------------ 수정 모드 */\n#edit-toggle {\n  position: fixed; left: 12px; bottom: 14px; z-index: 12; font: inherit; font-size: 14px;\n  background: var(--ink); color: var(--lcd); border: 0; padding: 7px 12px; cursor: pointer;\n  box-shadow: 0 0 0 2px var(--lcd); opacity: 0.45; transition: opacity 0.2s;\n}\n#edit-toggle:hover, #edit-toggle:focus-visible, body.is-editing #edit-toggle { opacity: 1; }\nbody.is-full #edit-toggle { display: none; }\n#edit-bar {\n  position: fixed; right: 12px; bottom: 14px; z-index: 12; width: min(400px, calc(100vw - 24px));\n  background: var(--ink); color: var(--lcd); padding: 12px 14px 14px; font-size: 14px;\n  box-shadow: 0 0 0 3px var(--lcd); display: flex; flex-direction: column; gap: 8px;\n}\n#edit-bar[hidden] { display: none; }\n#edit-bar .row { display: flex; gap: 6px; align-items: center; }\n#edit-bar .row .t { flex: 1; color: var(--lcd-hi); font-size: 15px; }\n#edit-bar button {\n  font: inherit; font-size: 14px; border: 0; padding: 6px 10px; cursor: pointer;\n  background: var(--lcd); color: var(--ink);\n}\n#edit-bar button.primary { background: var(--green); color: #fff; }\n#edit-bar button:disabled { opacity: 0.5; cursor: default; }\n#edit-bar button:focus-visible, #edit-toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }\n#edit-bar label { display: flex; flex-direction: column; gap: 4px; color: var(--lcd-hi); }\n#edit-notes {\n  font: 14px/1.5 \"Malgun Gothic\", sans-serif; height: 120px; resize: vertical; padding: 8px;\n  border: 0; background: #f6f1e4; color: var(--ink);\n}\n#edit-msg { color: #eef3dd; line-height: 1.45; min-height: 1.45em; }\nbody.is-editing [data-eid] { cursor: text; }\nbody.is-editing [data-eid]:hover { outline: 2px dashed var(--green); outline-offset: 2px; }\nbody.is-editing [data-eid]:focus { outline: 2px solid var(--green); outline-offset: 2px; background: rgba(201, 216, 168, 0.35); }\n\u003c/style>\n\u003cdiv id=\"help\">← → 넘기기 · F 전체 화면 · N 발표자 메모 · K 영상 재생 · R 영상 처음부터\u003c/div>\n\u003cdiv id=\"stage\">\n\u003c!-- 1. 표지 -->\n\u003csection class=\"slide\" data-notes=\"안녕하세요, Physical AI 기초 과정 6팀 PLANTCHI BOT 발표를 맡은 신효섭입니다. 저희가 만든 건 식물이 표정으로 말하고, 사람이 웹으로 로봇을 조종해 밝은 자리로 옮길 수 있는 이동형 스마트 화분입니다. 먼저 발표 순서부터 말씀드리겠습니다.\" data-sec=\"0\" data-time=\"0:20\">\n\u003cdiv class=\"cover\">\n\u003cdiv>\n\u003cdiv class=\"kicker\" data-eid=\"s1e0\">PHYSICAL AI 기초 과정 · 6팀 · 최종 발표\u003c/div>\n\u003ch1 class=\"logo\" data-eid=\"s1e1\">PLANTCHI\u003cbr/>\u003cspan>BOT\u003c/span>\u003c/h1>\n\u003cp class=\"tag\" data-eid=\"s1e2\">식물 다마고치 대시보드 × Raspberry Pi 로봇\u003c/p>\n\u003cp class=\"sub\" data-eid=\"s1e3\">식물이 표정으로 말하고,\u003cbr/>웹으로 조종해 밝은 자리로 옮기는\u003cbr/>이동형 스마트 화분\u003c/p>\n\u003cdiv class=\"team\" data-eid=\"s1e4\">우지현 · 신효섭 · 김주연 · 김서연\u003cbr/>2026. 11. 03\u003c/div>\n\u003c/div>\n\u003cdiv class=\"screen\" style=\"height: 400px;\">\n\u003cimg alt=\"\" class=\"scene\" src=\"assets/bg/room-day.png\"/>\n\u003cdiv class=\"bubble\" data-eid=\"s1e5\">빛이 충분해요! 기분 좋아요\u003c/div>\n\u003cimg alt=\"행복한 바질\" class=\"pet hop\" src=\"assets/chars/basil-grown-happy.png\" style=\"width: 240px;\"/>\n\u003cdiv class=\"classic\">\u003cimg alt=\"고전 다마고치 화면\" src=\"assets/cover/classic-tamagotchi.png\"/>\u003c/div>\n\u003cdiv class=\"era old\" data-eid=\"s1e6\">고전 다마고치\u003c/div>\n\u003cdiv class=\"era new\" data-eid=\"s1e7\">PLANTCHI BOT\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 2. 목차 (다음 장에서 도입 영상) -->\n\u003csection class=\"slide\" data-notes=\"발표는 일곱 부분입니다. 기획과 시스템 구성을 먼저 말씀드리고, 핵심 기능 네 가지를 실제 로봇 시연 영상과 함께 보여 드리겠습니다. 이어서 비전공자 네 명이 어떻게 계획하고 협업했는지, 그 과정에서 팀 개발과 하드웨어 통합 중에 겪은 문제와 해결, 결과와 한계를 정리하고 질문을 받겠습니다. 그럼 먼저 저희가 왜 이걸 만들었는지, 짧은 영상으로 보여 드리겠습니다. (→ 누르면 영상 시작)\" data-sec=\"0\" data-time=\"0:15\">\n\u003cdiv class=\"kicker\" data-eid=\"s2e0\">CONTENTS\u003c/div>\n\u003ch2 data-eid=\"s2e1\">목차\u003c/h2>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"toc\">\n\u003cdiv class=\"it\">\u003cspan class=\"n\" data-eid=\"s2e2\">01\u003c/span>\u003cdiv>\u003cb data-eid=\"s2e3\">기획\u003c/b>\u003csmall data-eid=\"s2e4\">문제 정의 › 감지 → 판단 → 표현 → 행동\u003c/small>\u003c/div>\u003c/div>\n\u003cdiv class=\"it\">\u003cspan class=\"n\" data-eid=\"s2e5\">05\u003c/span>\u003cdiv>\u003cb data-eid=\"s2e6\">문제 해결\u003c/b>\u003csmall data-eid=\"s2e7\">A 팀 개발 › B 하드웨어 통합 › C 거리 측정 › D 바퀴 정지\u003c/small>\u003c/div>\u003c/div>\n\u003cdiv class=\"it\">\u003cspan class=\"n\" data-eid=\"s2e8\">02\u003c/span>\u003cdiv>\u003cb data-eid=\"s2e9\">시스템 구성\u003c/b>\u003csmall data-eid=\"s2e10\">시스템 구조 › 하드웨어\u003c/small>\u003c/div>\u003c/div>\n\u003cdiv class=\"it\">\u003cspan class=\"n\" data-eid=\"s2e11\">06\u003c/span>\u003cdiv>\u003cb data-eid=\"s2e12\">결과와 한계\u003c/b>\u003csmall data-eid=\"s2e13\">최종 결과 › 남은 한계 › 우리가 그리는 모습\u003c/small>\u003c/div>\u003c/div>\n\u003cdiv class=\"it\">\u003cspan class=\"n\" data-eid=\"s2e14\">03\u003c/span>\u003cdiv>\u003cb data-eid=\"s2e15\">핵심 기능\u003c/b>\u003csmall data-eid=\"s2e16\">① 상태 판단 › ② 웹 대시보드 › ③ 햇빛과 물 › ④ 원격 조종과 안전 · 시연 영상 3편\u003c/small>\u003c/div>\u003c/div>\n\u003cdiv class=\"it\">\u003cspan class=\"n\" data-eid=\"s2e17\">07\u003c/span>\u003cdiv>\u003cb data-eid=\"s2e18\">Q&amp;A\u003c/b>\u003csmall data-eid=\"s2e19\">질문과 답변\u003c/small>\u003c/div>\u003c/div>\n\u003cdiv class=\"it\">\u003cspan class=\"n\" data-eid=\"s2e20\">04\u003c/span>\u003cdiv>\u003cb data-eid=\"s2e21\">협업 과정\u003c/b>\u003csmall data-eid=\"s2e22\">비전공자 팀의 시작 › 역할과 규칙 › 6일 일정\u003c/small>\u003c/div>\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 도입 영상: 우리 식물은 왜 자꾸 시들까? (장에 들어가면 소리와 함께 처음부터 재생) -->\n\u003csection class=\"slide intro\" data-notes=\"도입 영상(24초) · 말하지 않고 기다리기. 끝나면: '네, 이렇게 식물의 표정을 보고, 직접 옮겨 줄 수 있는 PLANTCHI BOT입니다.' 하고 문제 정의로 → (R 처음부터 다시 · K 재생/멈춤)\" data-sec=\"0\" data-time=\"0:25\">\n\u003cdiv class=\"media\" data-autoplay=\"\" data-kind=\"video\" data-src=\"videos/intro.mp4\">\n\u003cdiv class=\"ph\">\u003cspan class=\"play\">▶\u003c/span>\u003cb>도입 영상 자리\u003c/b>videos 폴더에 intro.mp4 로 넣으면 여기서 재생됩니다\u003c/div>\n\u003c/div>\n\u003cdiv class=\"tap-hint\">▶ R 키 또는 화면 클릭으로 영상 재생\u003c/div>\n\u003c/section>\n\u003c!-- 3. 문제 정의 -->\n\u003csection class=\"slide\" data-notes=\"강아지는 짖거나 움직여서 필요한 걸 알리지만, 식물은 사람이 잎과 자리를 살펴봐야 알 수 있습니다. 방금 영상처럼, 식물은 아프다고 말하지 못합니다. 창가에서 조금만 멀어져도 빛이 부족해지고, 실내 공기가 건조하거나 눅눅해져도 눈에 보이지 않습니다. 결국 잎이 처지고 나서야 문제를 알게 되죠. 그래서 식물의 상태를 눈에 보이게 만들고, 필요한 것을 직접 챙겨 줄 방법을 고민했습니다.\" data-sec=\"1\" data-time=\"0:20\">\n\u003cdiv class=\"kicker\" data-eid=\"s4e0\">01 기획 · 문제 정의\u003c/div>\n\u003ch2 data-eid=\"s4e1\">식물은 아프다고 말하지 못합니다\u003c/h2>\n\u003cp class=\"lead\" data-eid=\"s4e2\">동물은 소리와 몸짓으로 필요를 알리지만, 식물은 사람이 살펴봐야 알 수 있습니다\u003c/p>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"three\">\n\u003cdiv class=\"card\">\n\u003cimg alt=\"창가에서 떨어진 어두운 구석의 화분\" class=\"photo\" src=\"assets/problem/p1.jpg\" style=\"object-position: 50% 40%;\"/>\n\u003ch3 data-eid=\"s4e3\">어두운 자리\u003c/h3>\u003cp data-eid=\"s4e4\">창가에서 멀어지면 빛이 부족하지만, 사람 눈으로는 알아채기 어렵습니다.\u003c/p>\n\u003c/div>\n\u003cdiv class=\"card\">\n\u003cimg alt=\"습도계 25%와 82%, 끝이 마른 잎\" class=\"photo\" src=\"assets/problem/p2.jpg\" style=\"object-position: 50% 100%;\"/>\n\u003ch3 data-eid=\"s4e5\">건조하거나 눅눅한 공기\u003c/h3>\u003cp data-eid=\"s4e6\">식물이 느끼는 실내 습도 변화는 사람이 느끼는 것과 달라 놓치기 쉽습니다.\u003c/p>\n\u003c/div>\n\u003cdiv class=\"card\">\n\u003cimg alt=\"누렇게 변해 처진 잎\" class=\"photo\" src=\"assets/problem/p3.jpg\" style=\"object-position: 50% 55%;\"/>\n\u003ch3 data-eid=\"s4e7\">늦게 오는 신호\u003c/h3>\u003cp data-eid=\"s4e8\">잎이 처지고 색이 바랜 뒤에야 문제가 있었다는 걸 알게 됩니다.\u003c/p>\n\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 4. 핵심 아이디어 -->\n\u003csection class=\"slide\" data-notes=\"숫자만 보여 주는 화면은 정확하지만 한눈에 와닿지 않습니다. 10월 31일에 실제로 잰 밝기 0.911, 습도 69%, 거리 50.7cm만 보면 좋은 상태인지 바로 알기 어렵죠. 같은 값을 캐릭터로 보면 '기분 좋아요' 한마디로 끝납니다. 그래서 핵심 개념은 감지 → 판단 → 표현 → 행동입니다. 감지: 센서로 밝기, 공기 습도, 앞 거리를 잽니다. 판단: 서버가 측정값을 기준값과 비교해 식물 상태를 정합니다. 표현: 웹 대시보드의 캐릭터가 표정과 메시지로 알려 줍니다. 행동: 사용자가 웹으로 로봇을 조종해 밝은 곳으로 옮기고, 위험하면 로봇이 이동을 제한합니다. 지금은 감지, 판단, 표현까지 자동이고, 옮기는 건 사람이 웹으로 조종합니다. ※ 스스로 밝은 곳을 찾는 자율주행과 자동 급수는 아직 없다고 먼저 말하기.\" data-sec=\"1\" data-time=\"0:50\">\n\u003cdiv class=\"kicker\" data-eid=\"s5e0\">01 기획 · 핵심 아이디어\u003c/div>\n\u003ch2 data-eid=\"s5e1\">감지 → 판단 → 표현 → 행동\u003c/h2>\n\u003cp class=\"lead\" data-eid=\"s5e2\" style=\"margin-bottom: 14px;\">센서로 재고, 서버가 판단하고, 캐릭터가 알리고, 사람이 로봇으로 돌봅니다\u003c/p>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"numvs\">\n\u003cdiv class=\"lcd\">\u003csmall data-eid=\"s5e3\">숫자만 있는 화면 · 10/31 실측값\u003c/small>\u003cdiv class=\"nums\">\u003cspan data-eid=\"s5e4\">밝기 0.911\u003c/span>\u003cspan data-eid=\"s5e5\">습도 69%\u003c/span>\u003cspan data-eid=\"s5e6\">거리 50.7cm\u003c/span>\u003c/div>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s5e7\">▶\u003c/div>\n\u003cdiv class=\"card chr\">\n\u003cdiv class=\"screen mini\">\u003cimg alt=\"\" class=\"scene\" src=\"assets/bg/room-day.png\"/>\u003cimg alt=\"행복한 바질\" class=\"pet\" src=\"assets/chars/basil-grown-happy.png\"/>\u003c/div>\n\u003cdiv>\u003csmall data-eid=\"s5e8\">같은 값을 캐릭터로 보면\u003c/small>\u003cb data-eid=\"s5e9\">happy · \"빛이 충분해요! 기분 좋아요\"\u003c/b>\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003cdiv class=\"idea4 compact\">\n\u003cdiv class=\"card\">\n\u003cspan class=\"step\" data-eid=\"s5e10\">1\u003c/span>\u003ch3 data-eid=\"s5e11\">감지\u003c/h3>\n\u003cp data-eid=\"s5e12\">센서로 밝기 · 공기 습도 · 앞 거리를 측정\u003c/p>\n\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s5e13\">▶\u003c/div>\n\u003cdiv class=\"card\">\n\u003cspan class=\"step\" data-eid=\"s5e14\">2\u003c/span>\u003ch3 data-eid=\"s5e15\">판단\u003c/h3>\n\u003cp data-eid=\"s5e16\">서버가 측정값을 기준값과 비교해 식물 상태 결정\u003c/p>\n\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s5e17\">▶\u003c/div>\n\u003cdiv class=\"card\">\n\u003cspan class=\"step\" data-eid=\"s5e18\">3\u003c/span>\u003ch3 data-eid=\"s5e19\">표현\u003c/h3>\n\u003cp data-eid=\"s5e20\">캐릭터의 표정과 메시지가 바뀜\u003c/p>\n\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s5e21\">▶\u003c/div>\n\u003cdiv class=\"card\">\n\u003cspan class=\"step\" data-eid=\"s5e22\">4\u003c/span>\u003ch3 data-eid=\"s5e23\">행동\u003c/h3>\n\u003cp data-eid=\"s5e24\">사용자가 웹으로 로봇을 원격 조종 · 위험하면 이동 제한\u003c/p>\n\u003c/div>\n\u003c/div>\n\u003cdiv class=\"note-line\" data-eid=\"s5e25\">지금은 감지 · 판단 · 표현이 자동이고, 이동은 사람이 웹으로 조종합니다 · 스스로 찾아가는 자율주행과 자동 급수는 아직 없습니다\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 5. 시스템 구조 -->\n\u003csection class=\"slide\" data-notes=\"(감각기관 → 두뇌 → 얼굴 순서로 위 줄을 가리킨 뒤, 아래 다리를 가리키기) 구조는 사람에 비유하면 쉽습니다. 아두이노는 감각기관, 라즈베리파이는 두뇌, 그 안의 서버는 지휘소, 웹 대시보드는 얼굴과 리모컨, 라즈봇은 다리입니다. (왼쪽 아래 초록 칸) 센서값은 아두이노에서 라즈베리파이를 거쳐 웹으로 올라오고, (오른쪽 아래 칸) 조종 명령은 웹에서 서버를 거쳐 바퀴로 내려갑니다.\" data-sec=\"2\" data-time=\"0:50\">\n\u003cdiv class=\"kicker\" data-eid=\"s6e0\">02 시스템 구성 · 시스템 구조\u003c/div>\n\u003ch2 data-eid=\"s6e1\">사람에 비유하면 쉽습니다\u003c/h2>\n\u003cp class=\"lead\" data-eid=\"s6e2\">느끼고, 생각하고, 표정으로 보여 주고, 움직입니다\u003c/p>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"body6\">\n\u003cdiv class=\"b6\" style=\"grid-area: sense;\">\u003cdiv class=\"ic\">\u003ci class=\"px\" data-px=\"....####....|..##wwww##..|.#www##www#.|#www####www#|#www####www#|.#www##www#.|..##wwww##..|....####....\" data-s=\"5\">\u003c/i>\u003c/div>\u003cdiv class=\"meta\" data-eid=\"s6e3\">감각기관\u003c/div>\u003cb data-eid=\"s6e4\">Arduino Uno\u003c/b>\u003csmall data-eid=\"s6e5\">밝기와 공기 온습도를\u003cbr/>느낍니다\u003c/small>\u003c/div>\n\u003cdiv class=\"b6a\" data-eid=\"s6e6\" style=\"grid-area: a1;\">\u003ci>▶\u003c/i>USB\u003c/div>\n\u003cdiv class=\"b6 pi\" style=\"grid-area: pi;\">\n\u003cdiv class=\"head\">\u003ci class=\"px\" data-px=\"...##.##....|..#gg#gg##..|.#gggggggg#.|#gg#gggg#gg#|#ggg#gg#ggg#|#gggggggggg#|.#gg#gg#gg#.|..########..|.....##.....\" data-s=\"4\">\u003c/i>\u003cdiv class=\"meta\" data-eid=\"s6e7\">두뇌\u003c/div>\u003cb data-eid=\"s6e8\">Raspberry Pi 5\u003c/b>\u003c/div>\n\u003cdiv class=\"row\">\n\u003cdiv class=\"in\">\u003cdiv class=\"ic\">\u003ci class=\"px\" data-px=\".#.#.#.#.|#########|.#lllll#.|##l###l##|.#l#g#l#.|##l###l##|.#lllll#.|#########|.#.#.#.#.\" data-s=\"4\">\u003c/i>\u003c/div>\u003cdiv class=\"meta\" data-eid=\"s6e9\">로봇 프로그램\u003c/div>\u003cb data-eid=\"s6e10\">센서값 받기 · 바퀴 명령\u003c/b>\u003csmall data-eid=\"s6e11\">몸을 움직이게 합니다\u003c/small>\u003c/div>\n\u003cspan data-eid=\"s6e12\">⇄\u003c/span>\n\u003cdiv class=\"in\">\u003cdiv class=\"ic\">\u003ci class=\"px\" data-px=\"....#.......|....#rrrr...|....#rrr....|....#.......|..#######...|..#w#w#w#...|..#######...|..#w#w#w#...|..#######...\" data-s=\"4\">\u003c/i>\u003c/div>\u003cdiv class=\"meta\" data-eid=\"s6e13\">지휘소\u003c/div>\u003cb data-eid=\"s6e14\">FastAPI 서버\u003c/b>\u003csmall data-eid=\"s6e15\">값을 모아 상태를 정합니다\u003c/small>\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003cdiv class=\"b6a\" data-eid=\"s6e16\" style=\"grid-area: a2;\">\u003ci>⇄\u003c/i>와이파이\u003c/div>\n\u003cdiv class=\"b6\" style=\"grid-area: face;\">\u003cdiv class=\"ic\">\u003ci class=\"px\" data-px=\"############|#llllllllll#|#ll#llll#ll#|#llllllllll#|#l#llllll#l#|#ll######ll#|#llllllllll#|############|....####....|..########..\" data-s=\"5\">\u003c/i>\u003c/div>\u003cdiv class=\"meta\" data-eid=\"s6e17\">얼굴과 리모컨\u003c/div>\u003cb data-eid=\"s6e18\">웹 대시보드\u003c/b>\u003csmall data-eid=\"s6e19\">표정을 보여 주고\u003cbr/>조종 버튼을 받습니다\u003c/small>\u003c/div>\n\u003cdiv class=\"b6a\" data-eid=\"s6e20\" style=\"grid-area: a3;\">\u003ci>▼\u003c/i>I2C\u003c/div>\n\u003cdiv class=\"b6 leg\" style=\"grid-area: leg;\">\u003cdiv class=\"ic\">\u003ci class=\"px\" data-px=\"..########..|..#gggggg#..|############|#gggggggggg#|############|.###....###.|#.#.#..#.#.#|.###....###.\" data-s=\"5\">\u003c/i>\u003c/div>\u003cdiv class=\"meta\" data-eid=\"s6e21\">다리\u003c/div>\u003cb data-eid=\"s6e22\">Raspbot V2\u003c/b>\u003csmall data-eid=\"s6e23\">바퀴로 움직이고 앞 거리를 봅니다\u003c/small>\u003c/div>\n\u003cdiv class=\"b6lane up\" style=\"grid-area: l1;\">\u003cb data-eid=\"s6e24\">▲ 느끼면 → 표정으로\u003c/b>\u003cspan data-eid=\"s6e25\">센서 → 아두이노 → 라즈베리파이 → 웹 캐릭터\u003c/span>\u003c/div>\n\u003cdiv class=\"b6lane down\" style=\"grid-area: l2;\">\u003cb data-eid=\"s6e26\">▼ 누르면 → 움직임으로\u003c/b>\u003cspan data-eid=\"s6e27\">웹 버튼 → 지휘소 → 로봇 프로그램 → 바퀴\u003c/span>\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 6. 하드웨어 -->\n\u003csection class=\"slide\" data-notes=\"하드웨어입니다. 라즈베리파이 5가 두뇌로 로봇 프로그램과 서버를 실행하고, 라즈봇 V2의 모터 네 개를 I2C로 제어합니다. 파이에는 아날로그 입력이 없어서 센서는 아두이노 우노에 모았습니다. 조도 센서는 빛의 양을, DHT11은 공기 온도와 습도를 잽니다. 앞 거리는 처음엔 우노의 HC-SR04로 쟀지만, 배선이 흔들리는 문제로 라즈봇 본체의 내장 초음파로 바꿨습니다(문제 해결에서 자세히).\" data-sec=\"2\" data-time=\"0:20\">\n\u003cdiv class=\"kicker\" data-eid=\"s7e0\">02 시스템 구성 · 하드웨어\u003c/div>\n\u003ch2 data-eid=\"s7e1\">화분 로봇을 이루는 부품들\u003c/h2>\n\u003cdiv class=\"body\">\n\u003ctable class=\"hw\">\n\u003ctr>\u003cth data-eid=\"s7e2\">부품\u003c/th>\u003cth data-eid=\"s7e3\">하는 일\u003c/th>\u003cth data-eid=\"s7e4\">기준 · 비고\u003c/th>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s7e5\">Raspberry Pi 5\u003c/td>\u003ctd data-eid=\"s7e6\">로봇 프로그램과 FastAPI 서버를 실행하는 중심 컴퓨터\u003c/td>\u003ctd data-eid=\"s7e7\">웹 대시보드도 여기서 제공\u003c/td>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s7e8\">Raspbot V2\u003c/td>\u003ctd data-eid=\"s7e9\">4바퀴 이동. 확장 보드가 모터와 내장 초음파를 I2C로 제공\u003c/td>\u003ctd data-eid=\"s7e10\">최대 속도 0.5로 제한\u003c/td>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s7e11\">Arduino Uno\u003c/td>\u003ctd data-eid=\"s7e12\">Pi에 없는 아날로그 입력 대신 센서를 읽어 USB로 전송\u003c/td>\u003ctd data-eid=\"s7e13\">0.1초마다 한 줄\u003c/td>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s7e14\">LDR 조도 센서\u003c/td>\u003ctd data-eid=\"s7e15\">빛의 양\u003c/td>\u003ctd data-eid=\"s7e16\">60% 미만이면 \"어두움\"\u003c/td>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s7e17\">DHT11\u003c/td>\u003ctd data-eid=\"s7e18\">공기 상대습도와 온도\u003c/td>\u003ctd data-eid=\"s7e19\">2초마다 측정 · 흙 수분 아님\u003c/td>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s7e20\">내장 초음파\u003c/td>\u003ctd data-eid=\"s7e21\">앞 장애물까지의 거리\u003c/td>\u003ctd data-eid=\"s7e22\">20cm 미만이면 전진 차단\u003c/td>\u003c/tr>\n\u003c/table>\n\u003cdiv class=\"note-line\" data-eid=\"s7e23\">전방 감지는 Uno의 HC-SR04로 시작했다가, Raspbot 본체의 내장 초음파로 바꿨습니다\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 8. ① 상태 판단 -->\n\u003csection class=\"slide\" data-notes=\"이제 핵심 기능 네 가지입니다. 첫째, 상태 판단입니다. 서버는 센서값과 기준값을 비교하는 규칙으로 표정 네 가지 중 하나를 고릅니다. AI 모델이 진단하는 방식은 아닙니다. 밝고 습도가 알맞으면 happy, 조도가 0.6보다 낮으면 sleepy, 습도 30% 미만이면 dry, 80% 초과면 humid. 빛을 가장 먼저 봅니다. 핵심 시나리오가 밝은 곳으로 옮기는 것이기 때문입니다. 조도 0.6은 실측(평소 70~85%, 가리면 대부분 60% 아래)으로 정했고, 습도 기준은 임시값이라 환경변수로 바꿀 수 있습니다. dry·humid는 서버 테스트로만 확인했고, 시연에서는 happy와 sleepy를 보여 드립니다.\" data-sec=\"3\" data-time=\"0:50\">\n\u003cdiv class=\"kicker\" data-eid=\"s8e0\">03 핵심 기능 · ① 식물 상태 판단\u003c/div>\n\u003ch2 data-eid=\"s8e1\">센서값이 캐릭터의 표정이 됩니다\u003c/h2>\n\u003cp class=\"lead\" data-eid=\"s8e2\" style=\"margin-bottom: 8px;\">센서값을 기준값과 비교하는 규칙 기반 판단입니다 (학습된 AI 모델이 진단하는 방식이 아님)\u003c/p>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"moods4\">\n\u003cdiv class=\"mood\">\n\u003cdiv class=\"screen\">\u003cimg alt=\"\" class=\"scene\" src=\"assets/bg/room-day.png\"/>\u003cdiv class=\"bubble\" data-eid=\"s8e3\">기분 좋아요\u003c/div>\u003cimg alt=\"\" class=\"pet hop\" src=\"assets/chars/basil-grown-happy.png\" style=\"width: 110px;\"/>\u003c/div>\n\u003ch3 class=\"good\" data-eid=\"s8e4\">happy\u003c/h3>\u003cp data-eid=\"s8e5\">밝고 습도가 알맞을 때\u003cbr/>\"빛이 충분해요! 기분 좋아요\"\u003c/p>\n\u003c/div>\n\u003cdiv class=\"mood\">\n\u003cdiv class=\"screen\">\u003cimg alt=\"\" class=\"scene\" src=\"assets/bg/room-night.png\"/>\u003cdiv class=\"bubble\" data-eid=\"s8e6\">졸려요…\u003c/div>\u003cimg alt=\"\" class=\"pet\" src=\"assets/chars/basil-adult.png\" style=\"width: 100px;\"/>\u003cdiv class=\"zzz\" data-eid=\"s8e7\">Z\u003c/div>\u003c/div>\n\u003ch3 data-eid=\"s8e8\" style=\"color: var(--calm);\">sleepy\u003c/h3>\u003cp data-eid=\"s8e9\">조도 0.6 미만일 때\u003cbr/>\"너무 어두워요… 졸려요\"\u003c/p>\n\u003c/div>\n\u003cdiv class=\"mood\">\n\u003cdiv class=\"screen\">\u003cimg alt=\"\" class=\"scene\" src=\"assets/bg/room-day.png\"/>\u003cdiv class=\"bubble\" data-eid=\"s8e10\">목말라요…\u003c/div>\u003cimg alt=\"\" class=\"pet\" src=\"assets/chars/basil-grown-sad.png\" style=\"width: 110px;\"/>\u003c/div>\n\u003ch3 class=\"warn\" data-eid=\"s8e11\">dry\u003c/h3>\u003cp data-eid=\"s8e12\">습도 30% 미만일 때\u003cbr/>\"공기가 너무 건조해요… 목말라요\"\u003c/p>\n\u003c/div>\n\u003cdiv class=\"mood\">\n\u003cdiv class=\"screen\">\u003cimg alt=\"\" class=\"scene\" src=\"assets/bg/room-day.png\"/>\u003cdiv class=\"bubble\" data-eid=\"s8e13\">눅눅해요…\u003c/div>\u003cimg alt=\"\" class=\"pet\" src=\"assets/chars/basil-grown-sad.png\" style=\"width: 110px;\"/>\u003c/div>\n\u003ch3 class=\"warn\" data-eid=\"s8e14\">humid\u003c/h3>\u003cp data-eid=\"s8e15\">습도 80% 초과일 때\u003cbr/>\"너무 눅눅해요… 바람이 필요해요\"\u003c/p>\n\u003c/div>\n\u003c/div>\n\u003cdiv class=\"rules2\">\n\u003cdiv data-eid=\"s8e16\">\u003cb>빛이 먼저\u003c/b>어두우면 습도와 관계없이 sleepy. 밝은 곳으로 옮기는 것이 핵심 시나리오이기 때문입니다.\u003c/div>\n\u003cdiv data-eid=\"s8e17\">\u003cb>현장에서 조정\u003c/b>조도 0.6은 실측으로 정했고, 습도 기준은 임시값. 코드 수정 없이 환경변수로 바꿉니다.\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 9. ② 웹 대시보드 (한 장으로 요약) -->\n\u003csection class=\"slide\" data-notes=\"제가 만든 웹 대시보드입니다. 필요한 걸 한 화면에 모았습니다. A 맨 위에 연결 상태와 비상 정지, B 캐릭터는 센서값에 따라 표정과 말풍선이 바뀌고 식물 12종이 씨앗부터 자랍니다. C 센서 카드는 밝기·습도·앞 거리를 숫자와 그래프로 보여 주고, D 조종 패드는 누르는 동안만 움직이고, E는 옮기기 전과 후를 비교하고, F는 로봇 없이 브라우저에서 해 보는 체험 모드입니다. 실제로 어떻게 움직이는지 바로 영상으로 보겠습니다. ※ 밝기 막대의 빨간 선(30%)은 화면 표시일 뿐, 실제 판단 기준은 60%. 물어보면 그렇게 답하기.\" data-sec=\"3\" data-time=\"0:40\">\n\u003cdiv class=\"kicker\" data-eid=\"s9e0\">03 핵심 기능 · ② 웹 대시보드\u003c/div>\n\u003cdiv class=\"dash\">\n\u003cdiv>\n\u003ch2 data-eid=\"s9e1\" style=\"font-size: 30px; margin-bottom: 18px;\">한 화면에서\u003cbr/>보고, 돌보고,\u003cbr/>조종합니다\u003c/h2>\n\u003cdiv class=\"legend\">\n\u003cdiv>\u003cspan class=\"badge\" data-eid=\"s9e2\">A\u003c/span>\u003cspan data-eid=\"s9e3\">연결 상태 · 비상 정지\u003c/span>\u003c/div>\n\u003cdiv>\u003cspan class=\"badge\" data-eid=\"s9e4\">B\u003c/span>\u003cspan data-eid=\"s9e5\">캐릭터 표정 · 12종 성장\u003csmall>돌봄 인터랙션은 추가 기능\u003c/small>\u003c/span>\u003c/div>\n\u003cdiv>\u003cspan class=\"badge\" data-eid=\"s9e6\">C\u003c/span>\u003cspan data-eid=\"s9e7\">센서 카드\u003csmall>밝기 · 습도 · 앞 거리\u003c/small>\u003c/span>\u003c/div>\n\u003cdiv>\u003cspan class=\"badge\" data-eid=\"s9e8\">D\u003c/span>\u003cspan data-eid=\"s9e9\">원격 조종\u003csmall>누르는 동안만 이동\u003c/small>\u003c/span>\u003c/div>\n\u003cdiv>\u003cspan class=\"badge\" data-eid=\"s9e10\">E\u003c/span>\u003cspan data-eid=\"s9e11\">이동 전후 비교\u003csmall>옮기기 전 · 후 밝기 · 습도\u003c/small>\u003c/span>\u003c/div>\n\u003cdiv>\u003cspan class=\"badge\" data-eid=\"s9e12\">F\u003c/span>\u003cspan data-eid=\"s9e13\">체험 모드 지도\u003csmall>로봇 없이 미리 해 보기\u003c/small>\u003c/span>\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003cdiv class=\"pic\">\n\u003cimg alt=\"대시보드 전체 화면\" class=\"shot\" src=\"assets/shots/dashboard.png\"/>\n\u003cspan class=\"badge\" data-eid=\"s9e14\" style=\"left: 72%; top: 1%;\">A\u003c/span>\n\u003cspan class=\"badge\" data-eid=\"s9e15\" style=\"left: 9%; top: 9%;\">B\u003c/span>\n\u003cspan class=\"badge\" data-eid=\"s9e16\" style=\"left: 37%; top: 9%;\">C\u003c/span>\n\u003cspan class=\"badge\" data-eid=\"s9e17\" style=\"left: 36.5%; top: 29%;\">D\u003c/span>\n\u003cspan class=\"badge\" data-eid=\"s9e18\" style=\"left: 63%; top: 29%;\">E\u003c/span>\n\u003cspan class=\"badge\" data-eid=\"s9e19\" style=\"left: 62.5%; top: 46%;\">F\u003c/span>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 12. 시연 영상 (1) -->\n\u003csection class=\"slide\" data-notes=\"방금 본 대시보드가 실제로 어떻게 반응하는지 영상으로 보겠습니다. 왼쪽이 로봇, 오른쪽이 웹 화면입니다. (K 재생) 지금 밝기가 82%입니다. 조도 센서를 손으로 가리면 (⏸) 밝기가 30~40%대로 떨어지고, 캐릭터가 '너무 어두워요, 졸려요'로 바뀌면서 배경도 밤이 됩니다. (재생) 손을 떼면 다시 낮으로 돌아옵니다. 숫자만 있었다면 지나쳤을 텐데, 캐릭터가 졸고 있으면 한눈에 보이죠. (영상 28초 · 소리 없음)\" data-sec=\"3\" data-time=\"0:40\">\n\u003cdiv class=\"kicker\" data-eid=\"s10e0\">03 핵심 기능 · ② 웹 대시보드 › 시연 영상 (1) · 센서와 캐릭터\u003c/div>\n\u003ch2 data-eid=\"s10e1\">가리면 졸리고, 떼면 다시 행복해요\u003c/h2>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"demo\">\n\u003cdiv class=\"media\" data-kind=\"video\" data-src=\"videos/video1.mp4\" style=\"height: 480px;\">\n\u003cdiv class=\"ph\">\u003cspan class=\"play\">▶\u003c/span>\u003cb>시연 영상 (1) 자리\u003c/b>LDR을 가렸다 떼는 장면\u003cbr/>videos 폴더에 video1.mp4 로 넣으면 여기서 재생됩니다\u003c/div>\n\u003c/div>\n\u003cdiv class=\"side\">\n\u003ch3 data-eid=\"s10e2\">영상에서 볼 장면\u003c/h3>\n\u003cdiv class=\"step\" data-eid=\"s10e3\">\u003cspan class=\"badge\">1\u003c/span>실제 센서 수치 · 밝기 82%\u003c/div>\n\u003cdiv class=\"step\" data-eid=\"s10e4\">\u003cspan class=\"badge\">2\u003c/span>조도 센서를 손으로 가림 → 30~40%대, \"졸려요\" + 밤 배경\u003c/div>\n\u003cdiv class=\"step\" data-eid=\"s10e5\">\u003cspan class=\"badge\">3\u003c/span>손을 떼면 다시 낮 배경으로\u003c/div>\n\u003cp class=\"muted\" data-eid=\"s10e6\">왼쪽 로봇 · 오른쪽 웹 화면\u003cbr/>클릭 또는 K 키로 재생 · 멈춤\u003c/p>\n\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 14. 시연 영상 (2) -->\n\u003csection class=\"slide\" data-notes=\"이번에는 대시보드로 실제 라즈봇을 조종하는 영상입니다. (K 재생) 자동차 가속 페달처럼 버튼을 누르고 있는 동안에만 움직이고, 손을 떼면 멈춥니다. 움직이는 동안 오른쪽 위 앞 거리 값도 계속 바뀌죠. 촬영한 복도가 어두워서 캐릭터는 계속 졸려 하는데, 실제로는 이렇게 화분을 밝은 자리로 옮겨 주는 게 목표입니다. ※ 영상에서 밝기가 좋아지는 장면은 없으니 '밝아졌다'고 말하지 않기. (영상 32초 · 소리 없음)\" data-sec=\"3\" data-time=\"0:50\">\n\u003cdiv class=\"kicker\" data-eid=\"s11e0\">03 핵심 기능 · ② 웹 대시보드 › 시연 영상 (2) · 원격 조종\u003c/div>\n\u003ch2 data-eid=\"s11e1\">웹 버튼으로 라즈봇을 움직입니다\u003c/h2>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"demo\">\n\u003cdiv class=\"media\" data-kind=\"video\" data-src=\"videos/video2.mp4\" style=\"height: 480px;\">\n\u003cdiv class=\"ph\">\u003cspan class=\"play\">▶\u003c/span>\u003cb>시연 영상 (2) 자리\u003c/b>웹으로 라즈봇을 조종하는 장면\u003cbr/>videos 폴더에 video2.mp4 로 넣으면 여기서 재생됩니다\u003c/div>\n\u003c/div>\n\u003cdiv class=\"side\">\n\u003ch3 data-eid=\"s11e2\">영상에서 볼 장면\u003c/h3>\n\u003cdiv class=\"step\" data-eid=\"s11e3\">\u003cspan class=\"badge\">1\u003c/span>전진 · 회전 버튼을 누르는 동안만 이동\u003c/div>\n\u003cdiv class=\"step\" data-eid=\"s11e4\">\u003cspan class=\"badge\">2\u003c/span>버튼을 떼면 정지\u003c/div>\n\u003cdiv class=\"step\" data-eid=\"s11e5\">\u003cspan class=\"badge\">3\u003c/span>움직이는 동안 앞 거리 값이 계속 바뀜\u003c/div>\n\u003cp class=\"muted\" data-eid=\"s11e6\">촬영 장소가 어두워 밝기 55~58% · 계속 \"졸려요\" 상태입니다\u003c/p>\n\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 15. ③ 햇빛과 물 -->\n\u003csection class=\"slide\" data-notes=\"발표 주제는 '온도·습도에 따라 햇빛과 물 제공'이었습니다. 햇빛: 어두우면 캐릭터가 졸리다고 말하고, 사용자가 웹 버튼을 누르는 동안 로봇이 움직여 밝은 곳으로 옮깁니다. 옮기기 전·후 조도와 습도를 비교해 실제로 나아졌는지 확인합니다. 물: 공기 습도가 30% 아래로 떨어지면 캐릭터가 목마르다고 표현해 사용자가 물을 주게 합니다. 자동 급수는 향후 과제. 온도는 센서와 아두이노 코드까지만 준비했고, 서버와 웹 연결은 이번 범위에서 빼 두었습니다.\" data-sec=\"3\" data-time=\"0:40\">\n\u003cdiv class=\"kicker\" data-eid=\"s12e0\">03 핵심 기능 · ③ 햇빛과 물 (주제의 구현 범위)\u003c/div>\n\u003ch2 data-eid=\"s12e1\">햇빛과 물, 이렇게 챙겨 줍니다\u003c/h2>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"topic\" data-eid=\"s12e2\">발표 주제: \"온도·습도에 따라 햇빛과 물 제공\" → 저희가 구현한 범위\u003c/div>\n\u003cdiv class=\"sunwater\">\n\u003cdiv class=\"card\">\n\u003cdiv class=\"icon\" data-eid=\"s12e3\">🌞\u003c/div>\u003ch3 data-eid=\"s12e4\">햇빛 · 로봇이 옮겨 줍니다\u003c/h3>\n\u003cul>\u003cli data-eid=\"s12e5\">어두우면 캐릭터가 \"졸려요\"\u003c/li>\u003cli data-eid=\"s12e6\">웹 버튼을 누르는 동안 로봇이 이동\u003c/li>\u003cli data-eid=\"s12e7\">이동 전·후 조도·습도를 비교해 효과 확인\u003c/li>\u003c/ul>\n\u003cspan class=\"state\" data-eid=\"s12e8\">원격 조종 · 이동 전후 비교 구현\u003c/span>\n\u003c/div>\n\u003cdiv class=\"card\">\n\u003cdiv class=\"icon\" data-eid=\"s12e9\">💧\u003c/div>\u003ch3 data-eid=\"s12e10\">물 · 캐릭터가 알려 줍니다\u003c/h3>\n\u003cul>\u003cli data-eid=\"s12e11\">공기 습도가 30% 아래로 떨어지면\u003c/li>\u003cli data-eid=\"s12e12\">캐릭터가 \"목말라요\"라고 표현\u003c/li>\u003cli data-eid=\"s12e13\">사용자가 보고 물을 줍니다\u003c/li>\u003c/ul>\n\u003cspan class=\"state part\" data-eid=\"s12e14\">알림까지 구현 · 자동 급수는 향후 과제\u003c/span>\n\u003c/div>\n\u003c/div>\n\u003cdiv class=\"note-line\" data-eid=\"s12e15\">온도: 센서(DHT11)와 Arduino 코드까지 준비했고, 서버 · 웹 연결은 이번 범위에서 빼 두었습니다(다음 단계)\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 16. ④ 원격 조종과 안전 -->\n\u003csection class=\"slide\" data-notes=\"화분을 싣고 움직이니 가장 신경 쓴 건 안전입니다. 규칙 세 가지. 첫째, 누르는 동안만: 웹이 0.2초마다 '계속 가'를 보내고 명령 하나로는 0.4초만 움직이고, 손을 떼면 정지, 멈춰 있어도 정지 명령을 다시 보냅니다. 둘째, 앞 20cm 안이거나 거리를 모르면 전진 거부, 후진·회전은 가능. 셋째, 비상 정지가 가장 먼저, 해제 전까지 이동 거부. 바퀴를 띄운 상태와 짧은 바닥 주행으로 실제 확인했고, 통신 끊김 정지는 자동 테스트까지만. 그래서 시연 땐 항상 전원 스위치 옆에 한 명. ※ '0.4초 안에 멈춘다'고 말하지 않기.\" data-sec=\"3\" data-time=\"0:45\">\n\u003cdiv class=\"kicker\" data-eid=\"s13e0\">03 핵심 기능 · ④ 원격 조종과 안전\u003c/div>\n\u003ch2 data-eid=\"s13e1\">누르는 동안만 움직이고, 위험하면 멈춥니다\u003c/h2>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"rules\">\n\u003cdiv class=\"card\">\u003cspan class=\"n\" data-eid=\"s13e2\">규칙 1\u003c/span>\u003ch3 data-eid=\"s13e3\">누르는 동안만\u003c/h3>\u003cul>\u003cli data-eid=\"s13e4\">0.2초마다 \"계속 가\" 신호\u003c/li>\u003cli data-eid=\"s13e5\">명령 하나로 0.4초만 이동\u003c/li>\u003cli data-eid=\"s13e6\">손을 떼면 정지\u003c/li>\u003cli data-eid=\"s13e7\">멈춰 있어도 정지 재전송\u003c/li>\u003c/ul>\u003c/div>\n\u003cdiv class=\"card\">\u003cspan class=\"n\" data-eid=\"s13e8\">규칙 2\u003c/span>\u003ch3 data-eid=\"s13e9\">모르면 막힘\u003c/h3>\u003cul>\u003cli data-eid=\"s13e10\">20cm 안에 물체 → 전진 거부\u003c/li>\u003cli data-eid=\"s13e11\">거리를 모름 → 전진 거부\u003c/li>\u003cli data-eid=\"s13e12\">후진 · 회전은 가능\u003c/li>\u003c/ul>\u003c/div>\n\u003cdiv class=\"card\">\u003cspan class=\"n\" data-eid=\"s13e13\">규칙 3\u003c/span>\u003ch3 data-eid=\"s13e14\">비상 정지 우선\u003c/h3>\u003cul>\u003cli data-eid=\"s13e15\">다른 어떤 명령보다 먼저\u003c/li>\u003cli data-eid=\"s13e16\">해제 전까지 이동 명령 거부\u003c/li>\u003cli data-eid=\"s13e17\">화면 버튼 또는 Esc\u003c/li>\u003c/ul>\u003c/div>\n\u003c/div>\n\u003cdiv class=\"testcond\">\n\u003cspan class=\"chip\" data-eid=\"s13e18\">바퀴를 띄운 상태로 첫 테스트\u003c/span>\u003cspan class=\"chip\" data-eid=\"s13e19\">최대 속도 0.5 제한, 저속부터\u003c/span>\u003cspan class=\"chip\" data-eid=\"s13e20\">전원 스위치 옆에 항상 대기\u003c/span>\n\u003c/div>\n\u003cdiv class=\"note-line\" data-eid=\"s13e21\">0.4초는 명령 하나로 움직이는 시간이지, 바퀴가 반드시 0.4초 안에 멈춘다는 뜻이 아닙니다\u003cbr/>통신이 끊겼을 때의 자동 정지는 코드와 자동 테스트로만 확인했습니다\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 17. 시연 영상 (3) -->\n\u003csection class=\"slide\" data-notes=\"안전 기능 영상입니다. (K 재생) 장애물 쪽으로 전진하면, 앞 17cm에서 전진 버튼이 빨갛게 바뀌고 '장애물이 있어서 전진하지 않아요'라는 알림이 뜹니다. 기준은 20cm인데, 감지한 뒤 조금 더 가서 멈춘 겁니다. 뒤로는 갈 수 있고, 다시 다가가면 또 막힙니다. (⏸ 비상 정지 장면) 비상 정지를 누르면 조종 패드가 잠기고 '비상 정지 중'이 뜹니다. 오른쪽 위 '정지 해제'를 눌러야 다시 움직입니다. 여기까지가 저희가 만든 기능입니다. 이제 비전공자 네 명이 이걸 어떻게 계획하고 만들었는지 말씀드리겠습니다. (영상 26초 · 소리 없음)\" data-sec=\"3\" data-time=\"0:50\">\n\u003cdiv class=\"kicker\" data-eid=\"s14e0\">03 핵심 기능 · ④ 원격 조종과 안전 › 시연 영상 (3) · 자동 정지\u003c/div>\n\u003ch2 data-eid=\"s14e1\">위험하면 스스로 멈춥니다\u003c/h2>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"demo\">\n\u003cdiv class=\"media\" data-kind=\"video\" data-src=\"videos/video3.mp4\" style=\"height: 480px;\">\n\u003cdiv class=\"ph\">\u003cspan class=\"play\">▶\u003c/span>\u003cb>시연 영상 (3) 자리\u003c/b>장애물 앞 자동 정지 · 비상 정지 장면\u003cbr/>videos 폴더에 video3.mp4 로 넣으면 여기서 재생됩니다\u003c/div>\n\u003c/div>\n\u003cdiv class=\"side\">\n\u003ch3 data-eid=\"s14e2\">영상에서 볼 장면\u003c/h3>\n\u003cdiv class=\"step\" data-eid=\"s14e3\">\u003cspan class=\"badge\">1\u003c/span>앞 17cm에서 전진 막힘 + \"전진하지 않아요\" 알림\u003c/div>\n\u003cdiv class=\"step\" data-eid=\"s14e4\">\u003cspan class=\"badge\">2\u003c/span>후진은 가능 · 다시 다가가면 또 막힘\u003c/div>\n\u003cdiv class=\"step\" data-eid=\"s14e5\">\u003cspan class=\"badge\">3\u003c/span>비상 정지 → 패드 잠김 → \"정지 해제\"로 복구\u003c/div>\n\u003cp class=\"muted\" data-eid=\"s14e6\">기준은 20cm · 감지 후 조금 더 가서 멈춥니다\u003c/p>\n\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 7. 협업 ① 비전공자 팀의 시작 -->\n\u003csection class=\"slide\" data-notes=\"저희 팀 네 명은 모두 비전공자입니다. 그래서 처음부터 크게 만들지 않고, 작게 시작해 하나씩 붙이는 방법을 택했습니다. 첫날은 프로젝트에 들어가기 전에 팀원 취미 소개 웹사이트로 브랜치와 PR을 먼저 연습했습니다. 첫 목표도 표정 2개와 버튼 1개로 작게 잡았다가, 다음 날 '발표 때 꼭 동작해야 하는 것' 8개로 정했고, AI 대화 같은 어려운 기능은 추가 기능으로 미뤘습니다. 그리고 주고받을 데이터 형식과 API를 먼저 문서로 약속해서, 각자 따로 만들어도 맞물리게 했습니다. 센서와 모터가 없어도 개발할 수 있게 가짜 장치, Mock으로 먼저 만들고 실물은 확인한 뒤에 붙였습니다. 모르는 부분은 AI 도구의 도움을 받았지만, 가짜 장치 테스트만 통과한 것은 완료로 치지 않았습니다.\" data-sec=\"4\" data-time=\"0:40\">\n\u003cdiv class=\"kicker\" data-eid=\"s15e0\">04 협업 과정 · 비전공자 팀의 시작\u003c/div>\n\u003ch2 data-eid=\"s15e1\">비전공자 4명, 작게 시작해 하나씩 붙였습니다\u003c/h2>\n\u003cp class=\"lead\" data-eid=\"s15e2\">처음부터 크게 만들지 않고, 연습 → 범위 → 약속 → 가짜 장치 순서로 준비했습니다\u003c/p>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"idea4 start\">\n\u003cdiv class=\"card\">\u003cspan class=\"step\" data-eid=\"s15e3\">10/28\u003c/span>\u003ch3 data-eid=\"s15e4\">Git부터 연습\u003c/h3>\u003cp data-eid=\"s15e5\">프로젝트 전에 팀 취미 소개 웹사이트로 브랜치 · PR을 먼저 연습\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s15e6\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cspan class=\"step\" data-eid=\"s15e7\">10/28 → 10/29\u003c/span>\u003ch3 data-eid=\"s15e8\">범위를 작게\u003c/h3>\u003cp data-eid=\"s15e9\">표정 2개 + 버튼 1개에서 시작해 \"꼭 동작할 것\" 8개로 확정\u003cbr/>\u003cspan class=\"muted\">AI 대화는 추가 기능으로\u003c/span>\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s15e10\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cspan class=\"step\" data-eid=\"s15e11\">10/29\u003c/span>\u003ch3 data-eid=\"s15e12\">약속부터\u003c/h3>\u003cp data-eid=\"s15e13\">주고받을 데이터 형식과 API를 먼저 문서로 정해, 따로 만들어도 맞물리게\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s15e14\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cspan class=\"step\" data-eid=\"s15e15\">10/28 ~\u003c/span>\u003ch3 data-eid=\"s15e16\">가짜 장치로 먼저\u003c/h3>\u003cp data-eid=\"s15e17\">센서 · 모터 없이도 Mock(가짜 장치)으로 개발 · 테스트, 실물은 확인 후 적용\u003c/p>\u003c/div>\n\u003c/div>\n\u003cdiv class=\"learn\" data-eid=\"s15e18\">\u003cb>원칙\u003c/b>AI 도구(Claude Code · ChatGPT)의 도움을 받되, 가짜 장치 테스트만 통과한 것은 \"완료\"로 치지 않았습니다\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 7-2. 협업 ② 역할과 규칙 -->\n\u003csection class=\"slide\" data-notes=\"역할은 네 영역으로 나눴습니다. 우지현 팀장이 운영과 GitHub 관리, 센서·로봇과 하드웨어 통합을, 제가 웹 대시보드와 발표를, 김주연 님이 서버와 상태 판단, Pi 데이터 수신과 통합, 발표 자료 초안을, 김서연 님이 문서화와 QA, 발표 자료를 맡았습니다. 함께 개발한 방식은 네 가지입니다. 먼저 해야 할 작업 38개를 GitHub에 등록하고 담당자와 일정을 정했습니다. 각자 맡은 기능을 개발하면서 진행 상황을 공유했고, 완료할 때는 실제로 작동하는지 확인해 미완료 작업과 구분했습니다. 마지막으로 개발한 코드를 확인한 뒤 하나의 프로젝트로 합쳤습니다. 센서, 서버, 화면이 서로 이어져 있어서, 실물이 준비되기 전에는 가상 장치로 먼저 연결해 봤습니다. ※ 커밋 수로 비교하지 않기. (참고: 작업 38개는 10/29에 Issue로 한 번에 등록했고 GitHub 보드에서 담당자·마감일을 관리했습니다. 각자 브랜치에서 개발해 PR로 올렸고, 병합은 팀장이 확인한 뒤 했습니다. 이어진 작업 순서는 센서 출력(우지현) → Pi 수신·서버(김주연) → 화면·조종 버튼(신효섭)이었습니다)\" data-sec=\"4\" data-time=\"0:35\">\n\u003cdiv class=\"kicker\" data-eid=\"s16e0\">04 협업 과정 · 역할과 규칙\u003c/div>\n\u003ch2 data-eid=\"s16e1\">역할을 나누고, 함께 개발했습니다\u003c/h2>\n\u003cdiv class=\"body\" style=\"word-break: keep-all;\">\n\u003cdiv class=\"team4\">\n\u003cdiv class=\"card\">\u003cdiv class=\"name\" data-eid=\"s16e2\">우지현\u003cspan>팀장\u003c/span>\u003c/div>\u003cp data-eid=\"s16e3\">운영 · 일정 · GitHub 관리\u003cbr/>센서 · 로봇 구현\u003cbr/>하드웨어 통합 · 실기기 검증\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"name\" data-eid=\"s16e4\">신효섭\u003c/div>\u003cp data-eid=\"s16e5\">웹 대시보드\u003cbr/>캐릭터 · 원격 조종 UI\u003cbr/>최종 발표\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"name\" data-eid=\"s16e6\">김주연\u003c/div>\u003cp data-eid=\"s16e7\">FastAPI 서버 · 상태 판단\u003cbr/>Pi 데이터 수신 · 통합\u003cbr/>발표 자료 초안\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"name\" data-eid=\"s16e8\">김서연\u003c/div>\u003cp data-eid=\"s16e9\">문서화 · QA\u003cbr/>발표 자료\u003cbr/>시연 자료\u003c/p>\u003c/div>\n\u003c/div>\n\u003cdiv class=\"rules4\">\n\u003cdiv class=\"card\">\u003ch3 data-eid=\"s16e10\">① GitHub로 작업 관리\u003c/h3>\u003cp data-eid=\"s16e11\">해야 할 작업 38개를 등록하고 담당자와 일정을 정했습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003ch3 data-eid=\"s16e12\">② 담당자별 개발\u003c/h3>\u003cp data-eid=\"s16e13\">각자 맡은 기능을 개발하면서 진행 상황을 공유했습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003ch3 data-eid=\"s16e14\">③ 완료 기준 확인\u003c/h3>\u003cp data-eid=\"s16e15\">기능이 작동하는지 확인하고 미완료 작업도 구분했습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003ch3 data-eid=\"s16e16\">④ 코드 검토와 통합\u003c/h3>\u003cp data-eid=\"s16e17\">개발한 코드를 확인한 뒤 하나의 프로젝트로 합쳤습니다.\u003c/p>\u003c/div>\n\u003c/div>\n\u003cdiv class=\"flows\" style=\"margin-top: 16px;\">\u003cdiv data-eid=\"s16e18\">\u003cb>함께 연결\u003c/b>센서 · 서버 · 화면이 서로 이어져 있어, 실물이 준비되기 전에는 가상 장치로 먼저 연결해 확인했습니다\u003c/div>\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 7-3. 협업 ③ 일정: 계획 vs 실제 -->\n\u003csection class=\"slide\" data-notes=\"6일 일정입니다. 위가 계획, 아래가 실제입니다. 10월 30일까지 각자 기능을 만들고, 31일에 합치기 시작해서, 11월 2일에 실물 통합을 마치는 계획이었습니다. 가장 중요한 날은 10월 31일 오프라인 미팅이었습니다. 아두이노 센서의 실제 측정값을 서버와 웹 대시보드에 연결했고, 실제 밝기와 습도 값에 따라 캐릭터 상태가 표시되는 것을 확인했습니다. 로봇 조종은 가상 모터로 웹에서 명령이 가는 흐름을 점검했고, 와이파이가 없는 곳에서도 휴대폰 핫스팟으로 라즈베리파이에 접속되는 것을 확인했습니다. 그럼 이 과정에서 어떤 문제가 있었고 어떻게 풀었는지 보겠습니다. (참고: 실제 모터는 10/31 오전에 바퀴를 띄우고 한 바퀴씩 돌려 번호를 확정했고, 웹으로 실제 로봇을 조종한 시험은 11/2에 했습니다. 점검 기록 14:20~15:10, 14:50 측정값 밝기 0.911·습도 69%·거리 50.7cm, 캐릭터 happy. 모터·센서 작업 일부는 마감(10/30~31)보다 늦은 11/2에 완료 처리했고, 통신이 끊겼을 때 멈추는 시험은 실물로 하지 못해 '검토 중'으로 남겼습니다)\" data-sec=\"4\" data-time=\"0:30\">\n\u003cdiv class=\"kicker\" data-eid=\"s17e0\">04 협업 과정 · 6일 일정\u003c/div>\n\u003ch2 data-eid=\"s17e1\">6일 일정, 계획대로 되지 않은 것도 있었습니다\u003c/h2>\n\u003cdiv class=\"body\" style=\"word-break: keep-all;\">\n\u003cdiv class=\"plan\">\n\u003cdiv class=\"lab\">\u003c/div>\u003cdiv class=\"h\" data-eid=\"s17e2\">10/28\u003c/div>\u003cdiv class=\"h\" data-eid=\"s17e3\">10/29\u003c/div>\u003cdiv class=\"h\" data-eid=\"s17e4\">10/30\u003c/div>\u003cdiv class=\"h\" data-eid=\"s17e5\">10/31\u003c/div>\u003cdiv class=\"h\" data-eid=\"s17e6\">11/1\u003c/div>\u003cdiv class=\"h\" data-eid=\"s17e7\">11/2\u003c/div>\u003cdiv class=\"h\" data-eid=\"s17e8\">11/3\u003c/div>\n\u003cdiv class=\"lab\" data-eid=\"s17e9\">계획\u003c/div>\n\u003cdiv data-eid=\"s17e10\">프로젝트 시작\u003c/div>\n\u003cdiv data-eid=\"s17e11\">공통 약속 · 가상 장치 준비\u003c/div>\n\u003cdiv data-eid=\"s17e12\">개별 기능 완료\u003c/div>\n\u003cdiv data-eid=\"s17e13\">가상 통합 완료 · 실물 연결 시작\u003c/div>\n\u003cdiv data-eid=\"s17e14\">실물 통합 · 점검\u003c/div>\n\u003cdiv data-eid=\"s17e15\">실물 통합 완료 · 코드 확정\u003c/div>\n\u003cdiv data-eid=\"s17e16\">최종 발표\u003c/div>\n\u003cdiv class=\"lab\" data-eid=\"s17e17\">실제\u003c/div>\n\u003cdiv class=\"real\" data-eid=\"s17e18\">Git 연습 · 뼈대 구성\u003c/div>\n\u003cdiv class=\"real\" data-eid=\"s17e19\">역할 확정 · 작업 38개 등록\u003c/div>\n\u003cdiv class=\"real\" data-eid=\"s17e20\">센서 · 서버 · 화면 · 가상 연결\u003c/div>\n\u003cdiv class=\"real hot\" data-eid=\"s17e21\">오프라인 미팅 · 실제 센서 → 웹 확인\u003c/div>\n\u003cdiv class=\"real\" data-eid=\"s17e22\">센서 · 모터 코드 합치기\u003c/div>\n\u003cdiv class=\"real late\" data-eid=\"s17e23\">실제 로봇 조종 · 센서 교체 · 정지 개선\u003c/div>\n\u003cdiv class=\"real hot\" data-eid=\"s17e24\">최종 발표\u003c/div>\n\u003c/div>\n\u003cdiv class=\"meet\" style=\"margin-top: 18px;\">\n\u003cdiv class=\"card\" style=\"padding: 12px 16px;\">\n\u003ch3 data-eid=\"s17e25\" style=\"font-size: 20px; margin-bottom: 6px;\">10/31 오프라인 통합 미팅 (14:00~16:00)\u003c/h3>\n\u003cul class=\"checks\">\n\u003cli class=\"ok\" data-eid=\"s17e26\" style=\"font-size: 16px;\">Arduino 센서의 실제 측정값을 서버 · 웹 대시보드에 연결\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s17e27\" style=\"font-size: 16px;\">실제 조도 · 습도 값에 따른 캐릭터 상태 표시 확인\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s17e28\" style=\"font-size: 16px;\">가상 모터 모드로 웹 조종 연결 흐름 점검\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s17e33\" style=\"font-size: 16px;\">휴대폰 핫스팟으로 Raspberry Pi 접속 확인\u003c/li>\n\u003c/ul>\n\u003c/div>\n\u003cdiv class=\"card\" style=\"padding: 12px 16px; background: var(--lcd);\">\n\u003ch3 data-eid=\"s17e30\" style=\"font-size: 20px; margin-bottom: 6px;\">미팅에서 확인한 통합 결과\u003c/h3>\n\u003cp data-eid=\"s17e31\" style=\"font-size: 16px;\">센서 → Raspberry Pi → 서버 → 웹 화면까지 실제 데이터가 이어졌습니다\u003c/p>\n\u003cp class=\"muted\" data-eid=\"s17e29\" style=\"font-size: 15px; margin-top: 6px;\">그날 기록: 밝기 0.911 · 습도 69% · 거리 50.7cm → 캐릭터 \"기분 좋아요\"\u003c/p>\n\u003cp data-eid=\"s17e32\" style=\"font-size: 16px; margin-top: 6px;\">남은 과제: 실제 모터 연결과 안전 기능 시험\u003c/p>\n\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 문제 해결 A 팀 개발 과정 -->\n\u003csection class=\"slide\" data-notes=\"문제 해결은 네 가지로 나눠 말씀드리겠습니다. 먼저 서로 다른 작업을 하나로 연결하는 과정입니다. 첫째, 두 사람이 고친 코드가 같은 곳에서 충돌했습니다. 바뀐 내용을 비교해 하나로 합치고, 로봇에서 시험한 뒤 11월 1일에 합쳤습니다. 둘째, 미팅 장소에 와이파이가 없어서, 전날 휴대폰 핫스팟으로 연결을 미리 점검했고 미팅 당일 팀원 PC로 접속에 성공했습니다. 셋째, 로봇 컴퓨터로 코드를 옮기기가 어려워서, 프로젝트 파일을 묶어 복사하고 버전마다 따로 보관해 되돌릴 수 있게 했습니다. 이렇게 막힌 곳과 해결법을 서로 공유했습니다. (참고: 충돌은 Pi 데이터 수신 코드(김주연, PR #48)와 모터 코드(우지현, PR #52)가 같은 파일 robot/__main__.py를 고쳐서 생겼고, 10/31 통합용 브랜치에서 먼저 합쳐 Pi에서 시험한 뒤 11/1 둘 다 main에 병합했습니다. 핫스팟은 10/30에 미리 시험했고, 핫스팟에서는 raspberry.local 이름이 안 돼 휴대폰의 연결된 기기 목록에서 Pi 주소를 확인했습니다. 저장소가 비공개라 Pi에서 바로 받을 수 없어 PC에서 git archive로 묶어 scp로 복사했고, 버전마다 새 폴더에 두었습니다. 처음 쓰는 터미널이라 Pi용 명령을 Windows 창에 붙여 넣거나 한글 키보드 상태로 로그인이 안 되는 실수도 있었고, 명령을 한 줄 형식으로 통일하고 개발일지에 기록했습니다)\" data-sec=\"5\" data-time=\"0:35\">\n\u003cdiv class=\"kicker\" data-eid=\"s18e0\">05 문제 해결 · A 팀 개발 과정\u003c/div>\n\u003ch2 data-eid=\"s18e1\">서로 다른 작업을 하나로 연결하는 과정\u003c/h2>\n\u003cdiv class=\"body\" style=\"word-break: keep-all;\">\n\u003ctable class=\"hw prob\">\n\u003ctr>\u003cth data-eid=\"s18e2\">문제\u003c/th>\u003cth data-eid=\"s18e3\">어떻게 했나\u003c/th>\u003cth data-eid=\"s18e4\">결과\u003c/th>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s18e5\">① 코드 충돌 · 서로 다른 사람이 수정한 코드가 충돌\u003c/td>\u003ctd data-eid=\"s18e6\">변경 사항을 비교해 하나로 통합\u003c/td>\u003ctd data-eid=\"s18e7\">로봇에서 시험 후 11/1 합침\u003c/td>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s18e8\">② 네트워크 · 작업 공간에 Wi-Fi가 없었음\u003c/td>\u003ctd data-eid=\"s18e9\">휴대폰 핫스팟으로 연결해 전날 사전 점검\u003c/td>\u003ctd data-eid=\"s18e10\">10/31 팀원 PC로 접속 성공\u003c/td>\u003c/tr>\n\u003ctr>\u003ctd data-eid=\"s18e11\">③ 코드 배포 · 로봇 컴퓨터로 코드 옮기기가 어려웠음\u003c/td>\u003ctd data-eid=\"s18e12\">프로젝트 파일을 묶어 안전하게 복사\u003c/td>\u003ctd data-eid=\"s18e13\">버전마다 보관해 되돌릴 수 있음\u003c/td>\u003c/tr>\n\u003c/table>\n\u003cdiv class=\"learn\" data-eid=\"s18e17\">\u003cb>정리\u003c/b>서로 다른 환경에서 개발한 기능을 하나로 연결하면서, 문제의 원인과 해결 방법을 공유했습니다\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 문제 해결 B 하드웨어 통합 -->\n\u003csection class=\"slide\" data-notes=\"다음은 하드웨어입니다. 실제 로봇을 움직이자 예상하지 못한 문제가 나타났습니다. 첫째, 센서와 컴퓨터 사이의 데이터 연결을 새로 만들어야 했습니다. 라즈베리파이는 조도 센서 같은 아날로그 센서를 바로 읽지 못해서, 아두이노가 센서를 읽어 USB로 보내게 했습니다. 둘째, 가만히 있을 때는 되던 거리 센서가 로봇이 움직이면 끊겼습니다. 셋째, 버튼을 놓아도 바퀴가 계속 움직이는 경우가 있었습니다. 코드에서는 잘 되던 기능도 실제 장비에서는 다르게 움직였습니다. 둘째와 셋째는 다음 두 장에서 자세히 보겠습니다. (참고: 아두이노는 0.1초마다 한 줄씩 보내고, 30초 동안 301줄을 오류 없이 받았습니다. 라즈봇 공식 문서의 모터 번호가 실물과 달라 10/31에 바퀴를 띄우고 하나씩 돌려 네 개 번호를 확정했고, 정지 명령에 바로 멈추는 것도 확인했습니다. 센서를 추가하자 데이터 모양을 확인하는 자동 검사 4개가 실패해 실제 출력에 맞게 고쳤습니다. 11/2 오전에는 잘 되던 거리 센서 값이 전부 비어 나와 배선을 다시 연결했고, 15초 동안 151번 모두 정상으로 돌아왔지만 로봇이 움직이자 다시 끊겼습니다)\" data-sec=\"5\" data-time=\"0:25\">\n\u003cdiv class=\"kicker\" data-eid=\"s19e0\">05 문제 해결 · B 하드웨어 통합\u003c/div>\n\u003ch2 data-eid=\"s19e1\">실제 로봇을 움직이자 예상하지 못한 문제가 나타났습니다\u003c/h2>\n\u003cdiv class=\"body\" style=\"word-break: keep-all;\">\n\u003cdiv class=\"three\">\n\u003cdiv class=\"card\">\u003ch3 data-eid=\"s19e2\">① 센서 연결\u003c/h3>\u003cp data-eid=\"s19e3\">센서와 컴퓨터 사이의 데이터 연결을 구성해야 했습니다.\u003c/p>\u003cp class=\"muted\" data-eid=\"s19e4\" style=\"margin-top: 10px;\">Arduino가 읽어 USB로 전달\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003ch3 data-eid=\"s19e5\">② 거리 측정\u003c/h3>\u003cp data-eid=\"s19e6\">가만히 있을 때는 되던 센서가 움직이면 끊겼습니다.\u003c/p>\u003cp class=\"muted\" data-eid=\"s19e7\" style=\"margin-top: 10px;\">→ C 거리 센서 교체\u003c/p>\u003c/div>\n\u003cdiv class=\"card\">\u003ch3 data-eid=\"s19e8\">③ 모터 정지\u003c/h3>\u003cp data-eid=\"s19e9\">버튼을 놓아도 바퀴가 계속 움직이는 경우가 있었습니다.\u003c/p>\u003cp class=\"muted\" data-eid=\"s19e10\" style=\"margin-top: 10px;\">→ D 바퀴 정지 개선\u003c/p>\u003c/div>\n\u003c/div>\n\u003cdiv class=\"note-line\" data-eid=\"s19e14\">코드에서 정상적으로 작동한 기능도 실제 장비에서는 예상과 다르게 움직였습니다.\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 18. 문제 해결 ① 센서 교체 -->\n\u003csection class=\"slide\" data-notes=\"문제 C는 거리 센서입니다. 아까 안전 영상에서 장애물 앞에서 전진을 막던 바로 그 기능입니다. 처음 쓴 거리 센서는 선을 꽂아서 연결하는 방식이라, 로봇이 움직이면 연결이 불안정했습니다. 배선을 다시 연결하고 얼마나 안정적으로 재는지 확인해 봤지만, 움직이면 계속 끊겼습니다. 그래서 로봇 본체에 고정된 내장 센서로 바꿨고, 거리를 모를 때는 전진하지 않게 했습니다. 센서를 바꾼 뒤에는 실제로 바닥을 달리다가 장애물을 감지해 멈추는 것까지 확인했습니다. 기존 센서는 남겨 언제든 되돌릴 수 있습니다. 배운 점: 책상 위에서 되는 것과 움직이는 로봇에서 안정적인 것은 다른 문제였습니다. (참고: 다시 꽂은 뒤 60cm 거리에서 41번 중 6번만 값이 나왔습니다. 이것은 60cm 조건의 기록이고 이동 중 성공률이 아닙니다. 바퀴가 돌 때는 값이 계속 끊겼습니다. 149/149는 교체 전에 멈춘 상태에서 15초 동안 한 비교 측정이고(통신 오류 0건, 같은 시간 기존 센서 148/150), 주행 검증이 아닙니다. 주행 시험은 34cm에서 출발해 20cm 안쪽을 감지하자 멈췄고, 약 5cm 더 밀린 뒤 섰습니다. 앞이 약 4m 넘게 비면 거리를 몰라 전진하지 않습니다)\" data-sec=\"5\" data-time=\"0:40\">\n\u003cdiv class=\"kicker\" data-eid=\"s20e0\">05 문제 해결 · C 거리 측정\u003c/div>\n\u003ch2 data-eid=\"s20e1\">움직일 때 끊기던 센서를 교체했습니다\u003c/h2>\n\u003cdiv class=\"body\" style=\"word-break: keep-all;\">\n\u003cdiv class=\"flow4\">\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s20e2\">문제\u003c/div>\u003ch3 data-eid=\"s20e3\">값이 끊긴다\u003c/h3>\u003cp data-eid=\"s20e4\">처음 사용한 거리 센서는 로봇이 움직이면 연결이 불안정했습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s20e5\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s20e6\">조사\u003c/div>\u003ch3 data-eid=\"s20e7\">다시 연결해 확인\u003c/h3>\u003cp data-eid=\"s20e8\">배선을 다시 연결하고, 얼마나 안정적으로 측정되는지 확인했습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s20e9\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s20e10\">개선\u003c/div>\u003ch3 data-eid=\"s20e11\">본체 고정 센서로\u003c/h3>\u003cp data-eid=\"s20e12\">로봇 본체에 고정된 내장 센서로 변경했습니다.\u003cbr/>거리를 모르면 전진하지 않습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s20e13\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s20e14\">검증\u003c/div>\u003ch3 data-eid=\"s20e15\">주행으로 확인\u003c/h3>\u003cp data-eid=\"s20e16\">센서를 교체한 뒤 실제 주행 중 장애물을 감지해 멈추는 동작을 확인했습니다.\u003c/p>\u003c/div>\n\u003c/div>\n\u003cdiv class=\"note-line\" data-eid=\"s20e17\" style=\"font-size: 17px; padding: 9px 14px;\">기존 센서의 코드와 배선은 남겨 두어 언제든 되돌릴 수 있습니다\u003c/div>\n\u003cdiv class=\"learn\" data-eid=\"s20e18\">\u003cb>배운 점\u003c/b>센서가 책상 위에서 작동하는 것과, 움직이는 로봇에서 안정적으로 작동하는 것은 다른 문제였습니다\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 19. 문제 해결 ② 정지 재전송 -->\n\u003csection class=\"slide\" data-notes=\"문제 D. 웹에서 버튼을 놓았는데도 바퀴가 계속 움직이는 경우가 가끔 있었습니다. 기록을 보니 프로그램은 정지 명령을 모두 보내고 있었습니다. 그래서 모터 보드가 그중 일부를 놓친 것으로 보고, 멈춘 상태에서도 정지 명령을 반복해서 보내도록 바꿨습니다. 고친 뒤 실제 로봇으로 4번 시험했고, 모두 정상적으로 멈췄습니다. 다만 정확한 원인은 아직 확정하지 못했고, 4번의 시험으로 모든 상황에서 멈춘다고 장담할 수는 없습니다. 그래서 시연 때는 비상 정지와 전원 스위치를 항상 준비합니다. 배운 점: 프로그램이 명령을 보냈다는 것과 하드웨어가 실제로 멈춘다는 것은 다릅니다. (참고: 11/2 오전 회전 버튼을 놓은 뒤 생긴 현상입니다. 정지 명령 146회 전송은 로그 확인 결과이며, 그때 명령 만료 0회·통신 오류 0건이었습니다. 보드가 정지를 놓쳤다는 것은 추정이고 근본 원인은 확정되지 않았습니다. 정지를 일부러 놓치는 가짜 보드로 만든 시험 14개 중 고치기 전 코드는 10개가 실패했고, 고친 뒤에는 모두 통과했습니다. 실제 시험 4회는 좌회전 2번, 우회전 2번이며 그중 1번은 회전 중 비상 정지로 멈췄습니다)\" data-sec=\"5\" data-time=\"0:40\">\n\u003cdiv class=\"kicker\" data-eid=\"s21e0\">05 문제 해결 · D 멈추지 않는 바퀴\u003c/div>\n\u003ch2 data-eid=\"s21e1\">버튼을 놓아도 멈추지 않던 바퀴를 개선했습니다\u003c/h2>\n\u003cdiv class=\"body\" style=\"word-break: keep-all;\">\n\u003cdiv class=\"flow4\">\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s21e2\">문제\u003c/div>\u003ch3 data-eid=\"s21e3\">멈추지 않는 바퀴\u003c/h3>\u003cp data-eid=\"s21e4\">웹에서 버튼을 놓았는데도 바퀴가 계속 움직이는 경우가 있었습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s21e5\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s21e6\">조사\u003c/div>\u003ch3 data-eid=\"s21e7\">기록 확인\u003c/h3>\u003cp data-eid=\"s21e8\">정지 명령은 모두 보내졌지만, 실제 모터에 반영되지 않은 것으로 보였습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s21e9\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s21e10\">개선\u003c/div>\u003ch3 data-eid=\"s21e11\">정지 반복 전송\u003c/h3>\u003cp data-eid=\"s21e12\">정지 상태에서도 정지 명령을 반복해서 보내도록 변경했습니다.\u003c/p>\u003c/div>\n\u003cdiv class=\"arrow\" data-eid=\"s21e13\">▶\u003c/div>\n\u003cdiv class=\"card\">\u003cdiv class=\"tag\" data-eid=\"s21e14\">검증\u003c/div>\u003ch3 data-eid=\"s21e15\">실기기 시험\u003c/h3>\u003cp data-eid=\"s21e16\">수정 후 제한된 실기기 시험 4회에서 정상적으로 멈추는 것을 확인했습니다.\u003c/p>\u003c/div>\n\u003c/div>\n\u003cdiv class=\"note-line\" data-eid=\"s21e17\">주의: 정확한 원인은 아직 확정하지 못했고, 4회 시험으로 모든 상황의 정지를 보장할 수는 없습니다 · 시연 때는 비상 정지와 전원 스위치를 준비합니다\u003c/div>\n\u003cdiv class=\"learn\" data-eid=\"s21e18\">\u003cb>배운 점\u003c/b>프로그램이 명령을 보냈다는 것과, 실제 하드웨어가 안전하게 동작한다는 것은 다릅니다\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 20. 테스트와 결과 -->\n\u003csection class=\"slide\" data-notes=\"그래서 최종적으로 무엇을 만들고 확인했는지 정리하겠습니다. 첫째, 실제 밝기와 습도 데이터를 웹 대시보드에 표시하고, 그 값에 따라 캐릭터 표정이 바뀝니다. 둘째, 웹에서 실제 로봇을 조종했고, 장애물 앞 정지와 비상 정지 같은 안전 기능 일부를 실제 기기에서 확인했습니다. 셋째, 아직 실기기에서 충분히 확인하지 못한 기능도 남아 있습니다. 통신이 끊겼을 때 자동 정지, 돌봄 인터랙션의 로봇 반응, 이동 전후 비교 화면입니다. 자동 테스트는 로봇 142개, 서버 64개, 통합 9개 모두 통과했습니다. (참고: 11/2 최종 코드 39bd29b 기준, 라즈베리파이에서 실행. 지금 main f912173은 이후 문서만 추가되어 코드와 테스트는 같습니다. dry·humid 표정은 서버 테스트로만 확인했습니다)\" data-sec=\"6\" data-time=\"0:30\">\n\u003cdiv class=\"kicker\" data-eid=\"s22e0\">06 결과와 한계 · 최종 결과\u003c/div>\n\u003ch2 data-eid=\"s22e1\">구현하고 확인한 것, 아직 남은 것\u003c/h2>\n\u003cdiv class=\"body\" style=\"word-break: keep-all;\">\n\u003cdiv class=\"row\">\n\u003cdiv class=\"card\" style=\"flex: 1.4;\">\n\u003ch3 data-eid=\"s22e2\">실제 기기에서 확인\u003c/h3>\n\u003cul class=\"checks\">\n\u003cli class=\"ok\" data-eid=\"s22e3\">실제 밝기 · 습도 데이터를 웹 대시보드에 표시\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s22e4\">센서값에 따라 캐릭터 표정 변경\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s22e5\">웹에서 실제 로봇 원격 조종\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s22e6\">안전 기능 일부 확인: 장애물 앞 정지 · 비상 정지\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s22e7\">정지 반복 전송 후 시험 4회 정상 정지\u003c/li>\n\u003c/ul>\n\u003c/div>\n\u003cdiv style=\"flex: 1; display: flex; flex-direction: column; gap: 12px;\">\n\u003cdiv class=\"card\">\n\u003ch3 data-eid=\"s22e14\" style=\"font-size: 21px;\">실기기 검증이 부족한 것\u003c/h3>\n\u003cul class=\"checks\">\u003cli class=\"no\" data-eid=\"s22e15\" style=\"font-size: 17px;\">통신이 끊겼을 때 자동 정지\u003c/li>\u003cli class=\"no\" data-eid=\"s22e16\" style=\"font-size: 17px;\">돌봄 인터랙션의 로봇 반응\u003c/li>\u003cli class=\"no\" data-eid=\"s22e17\" style=\"font-size: 17px;\">dry · humid 표정 (서버 테스트만)\u003c/li>\u003cli class=\"no\" data-eid=\"s22e19\" style=\"font-size: 17px;\">이동 전후 비교 화면 (실제 이동으로는 미검증)\u003c/li>\u003c/ul>\n\u003c/div>\n\u003cdiv class=\"tests\" style=\"grid-template-columns: repeat(3, 1fr); margin: 0;\">\n\u003cdiv class=\"lcd\" style=\"padding: 12px 4px;\">\u003cdiv class=\"big\" data-eid=\"s22e8\" style=\"font-size: 44px;\">142\u003c/div>\u003cp data-eid=\"s22e9\" style=\"font-size: 15px;\">로봇 테스트\u003c/p>\u003c/div>\n\u003cdiv class=\"lcd\" style=\"padding: 12px 4px;\">\u003cdiv class=\"big\" data-eid=\"s22e10\" style=\"font-size: 44px;\">64\u003c/div>\u003cp data-eid=\"s22e11\" style=\"font-size: 15px;\">서버 테스트\u003c/p>\u003c/div>\n\u003cdiv class=\"lcd\" style=\"padding: 12px 4px;\">\u003cdiv class=\"big\" data-eid=\"s22e12\" style=\"font-size: 44px;\">9\u003c/div>\u003cp data-eid=\"s22e13\" style=\"font-size: 15px;\">통합 테스트\u003c/p>\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003cp class=\"muted\" data-eid=\"s22e18\" style=\"font-size: 15px; margin: 12px 0 0;\">자동 테스트 수치는 11/2 최종 코드 기준이며, 라즈베리파이에서 모두 통과했습니다 · 추가 개발 과제는 다음 장에서\u003c/p>\n\u003c/div>\n\u003c/section>\n\u003c!-- 21. 한계와 향후 -->\n\u003csection class=\"slide\" data-notes=\"남은 한계입니다. 물은 자동 급수가 아니라 공기 습도에 따른 알림이고, 햇빛은 자율주행이 아니라 사용자가 원격 조종으로 옮깁니다. 토양 수분 센서가 없어서 흙이 마른 정도는 직접 판단하지 못하고, 온도는 센서와 아두이노 코드까지만 준비했고 서버와 웹에는 연결하지 않았습니다. 또 앞이 약 4m 넘게 비면 거리를 몰라 전진을 막고, 일부 안전 기능은 실기기 검증이 충분하지 않습니다. 다음 단계는 토양 수분 센서와 펌프 자동 급수, 스스로 밝은 곳을 찾는 자율주행, 넓은 공간에서도 안전한 거리 판단, 온도 표시입니다. 이 단계들을 다 이루면 어떤 모습일지, 짧은 영상으로 보여 드리겠습니다. (→ 누르면 영상 시작)\" data-sec=\"6\" data-time=\"0:40\">\n\u003cdiv class=\"kicker\" data-eid=\"s23e0\">06 결과와 한계 · 남은 과제\u003c/div>\n\u003ch2 data-eid=\"s23e1\">구현한 것과 아직 아닌 것을 구분합니다\u003c/h2>\n\u003cdiv class=\"body\">\n\u003cdiv class=\"two\">\n\u003cdiv class=\"card\">\n\u003ch3 data-eid=\"s23e2\">현재 한계\u003c/h3>\n\u003cul>\n\u003cli data-eid=\"s23e3\">물: 자동 급수가 아니라 공기 습도에 따른 알림\u003c/li>\n\u003cli data-eid=\"s23e4\">햇빛: 자율주행이 아니라 사용자의 원격 조종\u003c/li>\n\u003cli data-eid=\"s23e5\">토양 수분 센서가 없어 흙이 마른 정도를 직접 판단 못 함\u003c/li>\n\u003cli data-eid=\"s23e6\">온도: 센서와 Arduino 코드까지만, 서버 · 웹 연결은 이번 범위에서 제외\u003c/li>\n\u003cli data-eid=\"s23e7\">앞이 약 4m 넘게 비면 거리를 몰라 전진 차단\u003c/li>\n\u003cli data-eid=\"s23e8\">일부 안전 기능은 실기기 검증이 충분하지 않음\u003c/li>\n\u003c/ul>\n\u003c/div>\n\u003cdiv class=\"card\" style=\"background: var(--lcd);\">\n\u003ch3 data-eid=\"s23e9\">다음 단계\u003c/h3>\n\u003cul>\n\u003cli data-eid=\"s23e10\">토양 수분 센서 + 펌프 자동 급수\u003c/li>\n\u003cli data-eid=\"s23e11\">스스로 밝은 곳을 찾는 자율주행\u003c/li>\n\u003cli data-eid=\"s23e12\">넓은 공간에서도 안전한 거리 판단\u003c/li>\n\u003cli data-eid=\"s23e13\">온도 표시 · 정지 문제 원인 규명\u003c/li>\n\u003cli data-eid=\"s23e14\">LCD 표정 · 카메라 인터랙션\u003c/li>\n\u003c/ul>\n\u003c/div>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c!-- 콘셉트 영상: 다음 단계를 모두 이루면 (장에 들어가면 소리와 함께 처음부터 재생) -->\n\u003csection class=\"slide intro\" data-notes=\"콘셉트 영상(11초) · 말하지 않고 기다리기. 끝나면: '스스로 햇빛을 찾아가고, 화면으로 표정을 짓는 화분. 저희가 PLANTCHI BOT으로 가고 싶은 모습입니다.' ※ 실제로 만든 로봇이 아니라 목표를 보여 주는 콘셉트 영상이라고 꼭 말하기. (R 처음부터 다시 · K 재생/멈춤)\" data-sec=\"6\" data-time=\"0:20\">\n\u003cdiv class=\"media\" data-autoplay=\"\" data-kind=\"video\" data-src=\"videos/vision.mp4\">\n\u003cdiv class=\"ph\">\u003cspan class=\"play\">▶\u003c/span>\u003cb>콘셉트 영상 자리\u003c/b>videos 폴더에 vision.mp4 로 넣으면 여기서 재생됩니다\u003c/div>\n\u003c/div>\n\u003cdiv class=\"vision-tag\" data-eid=\"s24e0\">콘셉트 영상 · 다음 단계를 모두 이룬 모습 (실제 구현 아님)\u003c/div>\n\u003cdiv class=\"tap-hint\">▶ R 키 또는 화면 클릭으로 영상 재생\u003c/div>\n\u003c/section>\n\u003c!-- 22. Q&A -->\n\u003csection class=\"slide\" data-notes=\"정리하면 세 가지입니다. 첫째, 센서, 서버, 웹, 로봇을 연결해 식물 돌봄을 표현하는 시스템을 만들었습니다. 둘째, 개별 기능보다 실제 하드웨어와 소프트웨어를 통합하는 과정에서 많은 문제를 해결했습니다. 셋째, 구현한 기능과 아직 검증하지 못한 부분을 구분했고, 이를 바탕으로 다음 방향을 정리했습니다. 가장 크게 배운 건, 소프트웨어 테스트 통과만으로 물리적 장치의 동작까지 보장할 수는 없다는 점입니다. 말 못 하는 식물에게 표정과 다리를 달아 줬다고 기억해 주세요. 지금까지 6팀이었습니다. 감사합니다. 궁금한 점 편하게 질문해 주세요.\" data-sec=\"7\" data-time=\"0:20\">\n\u003cdiv class=\"end\">\n\u003cdiv>\n\u003cp class=\"qa\" data-eid=\"s25e0\">Q&amp;A\u003c/p>\n\u003cp class=\"slogan\" data-eid=\"s25e1\">말 못 하는 식물에게\u003cbr/>\u003cspan>표정\u003c/span>과 \u003cspan>다리\u003c/span>를\u003c/p>\n\u003cul class=\"checks card\" style=\"max-width: 720px; padding: 14px 18px; font-size: 18px;\">\n\u003cli class=\"ok\" data-eid=\"s25e2\">센서, 서버, 웹, 로봇을 연결해 식물 돌봄을 표현하는 시스템을 만들었습니다\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s25e3\">실제 하드웨어와 소프트웨어를 통합하며 많은 문제를 해결했습니다\u003c/li>\n\u003cli class=\"ok\" data-eid=\"s25e4\">구현한 것과 아직 검증하지 못한 것을 구분하고, 다음 방향을 정했습니다\u003c/li>\n\u003c/ul>\n\u003cp data-eid=\"s25e5\" style=\"font-size: 22px; margin-top: 22px;\">궁금한 점을 편하게 질문해 주세요 · 감사합니다\u003c/p>\n\u003c/div>\n\u003cdiv class=\"screen\" style=\"height: 420px;\">\n\u003cimg alt=\"\" class=\"scene\" src=\"assets/bg/room-day.png\"/>\n\u003cdiv class=\"bubble\" data-eid=\"s25e6\">질문 환영해요!\u003c/div>\n\u003cimg alt=\"\" class=\"pet hop\" src=\"assets/chars/basil-grown-happy.png\" style=\"width: 240px;\"/>\n\u003c/div>\n\u003c/div>\n\u003c/section>\n\u003c/div>\n\u003cdiv id=\"notes\">\u003c/div>\n\n\u003cbutton id=\"edit-toggle\" type=\"button\" hidden>✎ 수정\u003c/button>\n\u003cdiv id=\"edit-bar\" hidden>\n  \u003cdiv class=\"row\">\u003cspan class=\"t\">수정 모드\u003c/span>\u003cbutton id=\"edit-prev\" type=\"button\" aria-label=\"이전 장\">◀\u003c/button>\u003cbutton id=\"edit-next\" type=\"button\" aria-label=\"다음 장\">▶\u003c/button>\u003c/div>\n  \u003cdiv id=\"edit-msg\" role=\"status\">\u003c/div>\n  \u003clabel for=\"edit-notes\">이 장의 발표자 메모 (N 키로 보는 내용)\u003ctextarea id=\"edit-notes\">\u003c/textarea>\u003c/label>\n  \u003cdiv class=\"row\">\u003cspan class=\"t\">\u003c/span>\u003cbutton id=\"edit-cancel\" type=\"button\">취소\u003c/button>\u003cbutton id=\"edit-save\" class=\"primary\" type=\"button\">저장\u003c/button>\u003c/div>\n\u003c/div>\n\n\u003cscript>\n(() => {\n  const SECTIONS = ['기획', '시스템', '핵심 기능', '협업', '문제 해결', '결과', 'Q&A'];\n  const stage = document.getElementById('stage');\n  const slides = [...document.querySelectorAll('.slide')];\n  const notes = document.getElementById('notes');\n  let cur = 0;\n\n  // 장마다 쪽 번호, 진행 막대, 목차 칸을 붙인다\n  slides.forEach((s, i) => {\n    const foot = document.createElement('div');\n    foot.className = 'foot';\n    foot.innerHTML = `\u003cspan>PLANTCHI BOT · Physical AI 기초 과정 6팀\u003c/span>\u003cspan>${i + 1} / ${slides.length}\u003c/span>`;\n    const bar = document.createElement('div');\n    bar.className = 'progress';\n    bar.innerHTML = slides.map((_, j) => `\u003ci class=\"${j \u003c= i ? 'on' : ''}\">\u003c/i>`).join('');\n    s.append(foot, bar);\n    const sec = Number(s.dataset.sec);\n    if (sec > 0) {\n      const tabs = document.createElement('div');\n      tabs.className = 'secbar';\n      tabs.innerHTML = SECTIONS.map((name, j) => `\u003cspan class=\"${j + 1 === sec ? 'on' : ''}\">${String(j + 1).padStart(2, '0')}${j + 1 === sec ? ' ' + name : ''}\u003c/span>`).join('');\n      s.append(tabs);\n    }\n  });\n\n  function fit() {\n    const k = Math.min(innerWidth / 1280, innerHeight / 720);\n    stage.style.transform = `translate(-50%, -50%) scale(${k})`;\n  }\n\n  // 도입 영상처럼 data-autoplay가 붙은 영상은 장에 들어가면 처음부터 소리와 함께 튼다\n  function playIntro(s) {\n    const box = s.querySelector('.media[data-autoplay]');\n    const v = box && box.querySelector('video');\n    if (!v) return;\n    s.classList.remove('needs-tap');\n    v.currentTime = 0;\n    v.play().catch(() => s.classList.add('needs-tap')); // 브라우저가 첫 클릭·키 입력 전에는 소리를 막는다\n  }\n\n  function show(i) {\n    cur = Math.max(0, Math.min(slides.length - 1, i));\n    slides.forEach((s, j) => s.classList.toggle('is-active', j === cur));\n    document.querySelectorAll('video').forEach((v) => v.pause());\n    const s = slides[cur];\n    notes.innerHTML = `\u003cdiv class=\"t\">${cur + 1}장 · ${s.dataset.time || ''}\u003c/div>${s.dataset.notes || ''}`;\n    history.replaceState(null, '', `#${cur + 1}`);\n    playIntro(s);\n  }\n\n  // 픽셀 아이콘: data-px의 문자 격자를 SVG 사각형으로 그린다\n  const PX = { '#': 'var(--ink)', g: 'var(--green)', l: 'var(--lcd-hi)', r: 'var(--red)', w: 'var(--card)' };\n  document.querySelectorAll('.px[data-px]').forEach((el) => {\n    const rows = el.dataset.px.split('|');\n    const sc = Number(el.dataset.s) || 4;\n    const w = rows[0].length, h = rows.length;\n    let rects = '';\n    rows.forEach((row, y) => [...row].forEach((c, x) => {\n      if (PX[c]) rects += `\u003crect x=\"${x}\" y=\"${y}\" width=\"1\" height=\"1\" fill=\"${PX[c]}\"/>`;\n    }));\n    el.innerHTML = `\u003csvg width=\"${w * sc}\" height=\"${h * sc}\" viewBox=\"0 0 ${w} ${h}\" shape-rendering=\"crispEdges\" aria-hidden=\"true\">${rects}\u003c/svg>`;\n  });\n\n  // 사진·영상: 파일이 있으면 보여 주고, 없으면 자리 표시를 남긴다\n  document.querySelectorAll('.media[data-src]').forEach((box) => {\n    const el = document.createElement(box.dataset.kind === 'video' ? 'video' : 'img');\n    if (el.tagName === 'VIDEO') {\n      el.preload = 'metadata';\n      el.playsInline = true;\n      el.addEventListener('loadeddata', () => box.classList.add('is-loaded'));\n      el.addEventListener('click', () => (el.paused ? el.play() : el.pause()));\n      el.style.objectFit = 'contain';\n    } else {\n      el.addEventListener('load', () => box.classList.add('is-loaded'));\n    }\n    el.src = box.dataset.src;\n    box.prepend(el);\n  });\n\n  addEventListener('keydown', (e) => {\n    const k = e.key;\n    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); show(cur + 1); }\n    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); show(cur - 1); }\n    else if (k === 'Home') show(0);\n    else if (k === 'End') show(slides.length - 1);\n    else if (k === 'f' || k === 'F') {\n      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen();\n    } else if (k === 'n' || k === 'N') notes.classList.toggle('is-open');\n    else if (k === 'r' || k === 'R') playIntro(slides[cur]);\n    else if (k === 'k' || k === 'K') {\n      const v = slides[cur].querySelector('video');\n      if (v && v.closest('.media').classList.contains('is-loaded')) v.paused ? v.play() : v.pause();\n    }\n  });\n  document.addEventListener('fullscreenchange', () => document.body.classList.toggle('is-full', !!document.fullscreenElement));\n\n  // 화면 오른쪽 3분의 1을 누르면 다음, 왼쪽은 이전 (영상 위 클릭은 재생·멈춤)\n  stage.addEventListener('click', (e) => {\n    if (slides[cur].classList.contains('needs-tap')) { playIntro(slides[cur]); return; }\n    if (e.target.closest('video')) return;\n    show(e.clientX > innerWidth * 0.66 ? cur + 1 : e.clientX \u003c innerWidth * 0.33 ? cur - 1 : cur);\n  });\n\n  addEventListener('resize', fit);\n  fit();\n  show((parseInt(location.hash.slice(1), 10) || 1) - 1);\n})();\n\u003c/script>\n\u003cscript>\n// 수정 모드: 편집 권한이 있는 사람이 글자와 발표자 메모를 고치고, 이 페이지를 새 버전으로 저장한다\n(() => {\n  const SKELETON_HEAD = '\u003c!doctype html>\u003chtml>\u003chead>\u003cmeta charset=utf8>\u003cmeta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\u003cstyle>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}\u003c/style>\u003c/head>\u003cbody>\\n';\n  const SKELETON_TAIL = '\\n\u003c/body>\u003c/html>';\n  const ALLOWED = new Set(['BR', 'B', 'STRONG', 'I', 'EM', 'SPAN', 'SMALL', 'SUB', 'SUP']);\n\n  const slides = [...document.querySelectorAll('section.slide')];\n  const bar = document.getElementById('edit-bar');\n  const btn = document.getElementById('edit-toggle');\n  const msg = document.getElementById('edit-msg');\n  const notesBox = document.getElementById('edit-notes');\n  const saveBtn = document.getElementById('edit-save');\n  let artifact = null;\n  let editing = false;\n  let readOnly = false;\n  let saving = false;\n  const notesEdits = {};\n\n  const current = () => Math.max(0, slides.findIndex((s) => s.classList.contains('is-active')));\n  const say = (text) => { msg.textContent = text; };\n\n  // 붙여 넣거나 엔터로 생긴 태그를 정리해 글자 꾸밈(굵게, 색 span, 줄바꿈)만 남긴다\n  function clean(node) {\n    [...node.childNodes].forEach((c) => {\n      if (c.nodeType === 3) return;\n      if (c.nodeType !== 1) { c.remove(); return; }\n      clean(c);\n      if (c.tagName === 'DIV' || c.tagName === 'P') {\n        c.before(document.createElement('br'));\n        c.replaceWith(...c.childNodes);\n      } else if (!ALLOWED.has(c.tagName)) {\n        c.replaceWith(...c.childNodes);\n      } else {\n        [...c.attributes].forEach((a) => { if (a.name !== 'class') c.removeAttribute(a.name); });\n      }\n    });\n    return node;\n  }\n\n  function syncNotesBox() {\n    const i = current();\n    notesBox.value = notesEdits[i] ?? slides[i].dataset.notes ?? '';\n    notesBox.dataset.slide = String(i);\n  }\n\n  function setEditing(on) {\n    editing = on;\n    document.body.classList.toggle('is-editing', on);\n    bar.hidden = !on;\n    document.querySelectorAll('[data-eid]').forEach((el) => {\n      if (on) el.setAttribute('contenteditable', 'true'); else el.removeAttribute('contenteditable');\n    });\n    if (on) {\n      syncNotesBox();\n      say(readOnly ? '이 링크는 보기 전용이라 고쳐도 저장되지 않아요.' : '글자를 클릭해서 고치세요. 다 고쳤으면 저장을 누르세요.');\n    }\n  }\n\n  notesBox.addEventListener('input', () => {\n    const i = Number(notesBox.dataset.slide);\n    notesEdits[i] = notesBox.value;\n    slides[i].dataset.notes = notesBox.value;\n  });\n\n  // 장이 바뀌면 메모 칸도 그 장의 메모로 바꾼다\n  new MutationObserver(() => { if (editing) syncNotesBox(); })\n    .observe(document.getElementById('stage'), { attributes: true, subtree: true, attributeFilter: ['class'] });\n\n  // 수정 중에는 글자를 클릭해도 장이 넘어가지 않고, 입력한 키가 발표 단축키로 쓰이지 않게 한다\n  addEventListener('keydown', (e) => {\n    const t = e.target;\n    if (t && (t.isContentEditable || t === notesBox)) e.stopPropagation();\n    else if (editing && e.key === 'Escape') setEditing(false);\n  }, true);\n  addEventListener('click', (e) => {\n    if (editing && e.target.closest('section.slide')) e.stopPropagation();\n  }, true);\n  document.addEventListener('paste', (e) => {\n    if (!e.target.isContentEditable) return;\n    e.preventDefault();\n    document.execCommand('insertText', false, (e.clipboardData || window.clipboardData).getData('text/plain'));\n  });\n  addEventListener('keydown', (e) => {\n    if ((e.key === 'e' || e.key === 'E') && !editing && artifact && !e.target.isContentEditable) setEditing(true);\n  });\n\n  btn.addEventListener('click', () => setEditing(!editing));\n  document.getElementById('edit-cancel').addEventListener('click', () => location.reload());\n  document.getElementById('edit-prev').addEventListener('click', () => dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' })));\n  document.getElementById('edit-next').addEventListener('click', () => dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' })));\n\n  // 원본 소스에 고친 글자를 넣어 새 index.html을 만든다 (화면의 DOM을 그대로 저장하지 않는다)\n  function buildPage() {\n    const src = JSON.parse(document.getElementById('deck-src').textContent);\n    const doc = new DOMParser().parseFromString('\u003c!doctype html>\u003chtml>\u003chead>\u003c/head>\u003cbody>' + src + '\u003c/body>\u003c/html>', 'text/html');\n    document.querySelectorAll('[data-eid]').forEach((live) => {\n      const target = doc.querySelector(`[data-eid=\"${live.dataset.eid}\"]`);\n      if (!target) return;\n      const copy = clean(live.cloneNode(true));\n      if (target.innerHTML !== copy.innerHTML) target.innerHTML = copy.innerHTML;\n    });\n    const docSlides = doc.querySelectorAll('section.slide');\n    Object.entries(notesEdits).forEach(([i, v]) => { if (docSlides[i]) docSlides[i].setAttribute('data-notes', v); });\n    const content = doc.body.innerHTML;\n    const srcBlock = '\u003cscript type=\"application/json\" id=\"deck-src\">' + JSON.stringify(content).replace(/\u003c/g, '\\\\u003c') + '\u003c\\/script>\\n';\n    return SKELETON_HEAD + content + srcBlock + SKELETON_TAIL;\n  }\n\n  saveBtn.addEventListener('click', async () => {\n    if (saving || readOnly || !artifact) return;\n    saving = true;\n    saveBtn.disabled = true;\n    say('저장하는 중…');\n    try {\n      await artifact.publish({ 'index.html': { content: buildPage(), contentType: 'text/html' } });\n      say('저장했어요. 링크를 여는 모든 사람에게 이 내용이 보여요.');\n      setTimeout(() => location.reload(), 1200);\n    } catch (err) {\n      const code = err && err.code;\n      if (code === 'conflict') say('다른 사람이 먼저 저장했어요. 새 버전으로 다시 불러온 뒤 고쳐 주세요.');\n      else if (['not_writer', 'not_granted', 'consent_required', 'capability_disabled', 'not_declared'].includes(code)) {\n        readOnly = true;\n        say('이 링크는 보기 전용이에요. 편집 권한을 받아야 저장할 수 있어요.');\n      } else if (code === 'rate_limited') say('저장이 너무 잦아요. 잠시 뒤에 다시 눌러 주세요.');\n      else say('저장하지 못했어요. 잠시 뒤에 다시 눌러 주세요.');\n    } finally {\n      saving = false;\n      saveBtn.disabled = readOnly;\n    }\n  });\n\n  if (window.claude && claude.use) {\n    claude.use('artifact').then((a) => {\n      if (!a) return;\n      artifact = a;\n      btn.hidden = false;\n    });\n  }\n})();\n\u003c/script>\n"</script>
+
+</body></html>
